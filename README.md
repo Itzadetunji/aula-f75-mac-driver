@@ -44,14 +44,14 @@ macOS asks for permissions the first time you use certain features:
 
 The app is made of two parts that talk to each other:
 
-```
-┌───────────────────────────┐   JSON lines over stdio   ┌───────────────────────────┐
-│  Electron app (TypeScript) │ ◀──────────────────────▶ │  f75-helper (Swift)       │
-│  UI, effects, macros,      │                          │  USB HID, audio capture,  │
-│  settings, translations    │                          │  typing, menu bar         │
-└───────────────────────────┘                          └─────────────┬─────────────┘
-                                                                     │ IOKit HID
-                                                               AULA F75 / dongle
+```mermaid
+flowchart LR
+    app["<b>Electron app</b> (TypeScript)<br/>UI, effects, macros,<br/>settings, translations"]
+    helper["<b>f75-helper</b> (Swift)<br/>USB HID, audio capture,<br/>typing, menu bar"]
+    keyboard["AULA F75<br/>(USB cable or 2.4 GHz dongle)"]
+
+    app <-->|JSON lines over stdio| helper
+    helper <-->|IOKit HID| keyboard
 ```
 
 - **Electron app** (`src/`): the window (React + Tailwind + shadcn/ui), and the main process that renders lighting effects frame by frame, registers macro shortcuts and stores your preferences.
