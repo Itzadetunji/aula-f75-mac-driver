@@ -51,9 +51,11 @@ export function App() {
           <TabsTrigger value="led-check">
             <ScanSearch /> Layout
           </TabsTrigger>
-          <TabsTrigger value="lab">
-            <Microscope /> Protocol lab
-          </TabsTrigger>
+          {import.meta.env.DEV && (
+            <TabsTrigger value="lab">
+              <Microscope /> Protocol lab
+            </TabsTrigger>
+          )}
         </TabsList>
         <StatusBadge status={status} />
       </header>
@@ -77,9 +79,11 @@ export function App() {
           <TabsContent value="led-check">
             <LayoutPage connected={connected} />
           </TabsContent>
-          <TabsContent value="lab">
-            <ProtocolLabPage connected={connected} />
-          </TabsContent>
+          {import.meta.env.DEV && (
+            <TabsContent value="lab">
+              <ProtocolLabPage connected={connected} />
+            </TabsContent>
+          )}
         </main>
       </ScrollArea>
     </Tabs>
