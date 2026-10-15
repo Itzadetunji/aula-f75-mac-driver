@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Onboarding } from '@/components/onboarding'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { useDeviceStatus } from '@/hooks/use-f75'
 import { usePreferences } from '@/hooks/use-layout'
 
@@ -50,25 +51,27 @@ export function App() {
         <StatusBadge status={status} />
       </header>
 
-      <main className="flex-1 overflow-y-auto p-6">
-        {status?.error && (
-          <Card className="border-destructive/50 mb-6 py-4">
-            <CardHeader>
-              <CardTitle className="text-destructive">Problem talking to the keyboard</CardTitle>
-              <CardDescription>{status.error}</CardDescription>
-            </CardHeader>
-          </Card>
-        )}
-        <TabsContent value="lighting">
-          <LightingPage connected={connected} />
-        </TabsContent>
-        <TabsContent value="led-check">
-          <LayoutPage connected={connected} />
-        </TabsContent>
-        <TabsContent value="lab">
-          <ProtocolLabPage connected={connected} />
-        </TabsContent>
-      </main>
+      <ScrollArea className="min-h-0 flex-1">
+        <main className="p-6">
+          {status?.error && (
+            <Card className="border-destructive/50 mb-6 py-4">
+              <CardHeader>
+                <CardTitle className="text-destructive">Problem talking to the keyboard</CardTitle>
+                <CardDescription>{status.error}</CardDescription>
+              </CardHeader>
+            </Card>
+          )}
+          <TabsContent value="lighting">
+            <LightingPage connected={connected} />
+          </TabsContent>
+          <TabsContent value="led-check">
+            <LayoutPage connected={connected} />
+          </TabsContent>
+          <TabsContent value="lab">
+            <ProtocolLabPage connected={connected} />
+          </TabsContent>
+        </main>
+      </ScrollArea>
     </Tabs>
   )
 }

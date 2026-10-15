@@ -81,6 +81,22 @@
   }
 }
 
+/* Fallback for any native scroller not wrapped in <ScrollArea>; matches its thumb. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background-clip: content-box;
+}
+
 .drag-region {
   -webkit-app-region: drag;
 }

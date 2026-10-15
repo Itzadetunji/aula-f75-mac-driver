@@ -5,6 +5,7 @@ import type { RGB } from '@shared/types'
 import { KeyboardView } from '@/components/keyboard-view'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useLayout } from '@/hooks/use-layout'
 import { cn } from '@/lib/utils'
@@ -92,24 +93,26 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
   return (
     <div className="flex h-screen flex-col">
       <div className="drag-region h-10 shrink-0" />
-      <main className="flex flex-1 items-center justify-center overflow-y-auto px-8">
-        {/* All steps share one grid cell so the stage keeps the tallest step's height and never re-centres mid-transition. */}
-        <div className="grid">
-          {STEPS.map((Step, i) => (
-            <div
-              key={i}
-              inert={i !== step}
-              aria-hidden={i !== step}
-              className={cn(
-                'col-start-1 row-start-1 flex items-center justify-center transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none',
-                i === step ? 'translate-x-0 opacity-100' : i < step ? '-translate-x-6 opacity-0' : 'translate-x-6 opacity-0',
-              )}
-            >
-              <Step />
-            </div>
-          ))}
-        </div>
-      </main>
+      <ScrollArea className="min-h-0 flex-1" viewportClassName="[&>div]:min-h-full">
+        <main className="flex min-h-full items-center justify-center px-8 py-4">
+          {/* All steps share one grid cell so the stage keeps the tallest step's height and never re-centres mid-transition. */}
+          <div className="grid">
+            {STEPS.map((Step, i) => (
+              <div
+                key={i}
+                inert={i !== step}
+                aria-hidden={i !== step}
+                className={cn(
+                  'col-start-1 row-start-1 flex items-center justify-center transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none',
+                  i === step ? 'translate-x-0 opacity-100' : i < step ? '-translate-x-6 opacity-0' : 'translate-x-6 opacity-0',
+                )}
+              >
+                <Step />
+              </div>
+            ))}
+          </div>
+        </main>
+      </ScrollArea>
       <div className="flex items-center justify-between px-8 py-5">
         <Button variant="ghost" onClick={() => setStep((s) => s - 1)} className={cn(step === 0 && 'invisible')}>
           <ArrowLeft /> Back
