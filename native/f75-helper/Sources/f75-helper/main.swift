@@ -23,6 +23,9 @@ final class Server {
     private var directColors: [[UInt8]]?
     private var lastFrameSent = Date.distantPast
     private var keepalive: Timer?
+    /// Over the radio the keyboard falls back to its own effect quickly when
+    /// frames stop, so even an unchanged frame is repeated this often (seconds).
+    private static let dongleRefresh: TimeInterval = 0.25
     private var lastDongleReports: [[UInt8]] = []
     private var lastDongleSent = Date.distantPast
 
@@ -109,7 +112,7 @@ final class Server {
         case .wireless:
             let reports = F75Protocol.dongleReports(colors)
             // The radio link is the bottleneck: don't resend what the keyboard already shows.
-            if reports == lastDongleReports, Date().timeIntervalSince(lastDongleSent) < 1 { return }
+            if reports == lastDongleReports, Date().timeIntervalSince(lastDongleSent) < Self.dongleRefresh { return }
             // The vendor driver leaves ~11 ms between the reports of one message.
             for (n, report) in reports.enumerated() {
                 if n > 0 { usleep(11_000) }
@@ -171,9 +174,12 @@ final class Server {
 
     private func startKeepalive() {
         guard keepalive == nil else { return }
-        keepalive = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-            guard let self, let colors = self.directColors,
-                  Date().timeIntervalSince(self.lastFrameSent) > 0.9 else { return }
+        keepalive = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self, let colors = self.directColors else { return }
+            let stale = self.keyboard.transport == .wireless
+                ? Date().timeIntervalSince(self.lastDongleSent) > Self.dongleRefresh
+                : Date().timeIntervalSince(self.lastFrameSent) > 0.9
+            guard stale else { return }
             if (try? self.sendColors(colors)) != nil { self.lastFrameSent = Date() }
         }
     }

@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { Keyboard, Plus, ShieldAlert, Trash2 } from 'lucide-react'
-import { formatAccelerator, keyFromCode, toAccelerator, validateShortcut, type Macro } from '@shared/macros'
+import { Download, Keyboard, Plus, ShieldAlert, Trash2, Upload } from 'lucide-react'
+import {
+  exportMacros,
+  formatAccelerator,
+  keyFromCode,
+  parseMacroFile,
+  toAccelerator,
+  validateShortcut,
+  type Macro,
+} from '@shared/macros'
 import type { MacroErrors } from '@shared/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -178,6 +186,50 @@ export function MacrosPage() {
     return () => window.clearInterval(timer)
   }, [])
 
+  const fileInput = useRef<HTMLInputElement>(null)
+  const [importNote, setImportNote] = useState<{ ok: boolean; text: string } | null>(null)
+
+  const importFiles = async (files: FileList | null) => {
+    if (!files?.length) return
+    const imported: Macro[] = []
+    const problems: string[] = []
+    for (const file of files) {
+      try {
+        imported.push(...parseMacroFile(file.name, await file.text()))
+      } catch (err) {
+        problems.push((err as Error).message)
+      }
+    }
+    // A shortcut can only trigger one macro; clashing imports keep their text and need a new shortcut.
+    const used = new Set(macros.map((m) => m.accelerator).filter(Boolean))
+    let cleared = 0
+    for (const macro of imported) {
+      if (!macro.accelerator) continue
+      if (used.has(macro.accelerator)) {
+        macro.accelerator = ''
+        cleared++
+      } else {
+        used.add(macro.accelerator)
+      }
+    }
+    if (imported.length) save([...macros, ...imported])
+
+    const parts = []
+    if (imported.length) parts.push(`Imported ${imported.length} macro${imported.length === 1 ? '' : 's'}.`)
+    if (cleared) parts.push(`${cleared} shortcut${cleared === 1 ? ' was' : 's were'} already in use, so record a new one.`)
+    parts.push(...problems)
+    setImportNote({ ok: problems.length === 0, text: parts.join(' ') })
+  }
+
+  const exportFile = () => {
+    const url = URL.createObjectURL(new Blob([exportMacros(macros)], { type: 'application/json' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'f75-macros.json'
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
   const save = (next: Macro[]) => updatePreferences({ macros: next })
   const change = (id: string, patch: Partial<Macro>) => save(macros.map((m) => (m.id === id ? { ...m, ...patch } : m)))
   const add = () =>
@@ -196,10 +248,37 @@ export function MacrosPage() {
             or ⇧. Fn can't be used: the F75 handles it internally and never sends it to macOS.
           </p>
         </div>
-        <Button onClick={add}>
-          <Plus /> New macro
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <input
+            ref={fileInput}
+            type="file"
+            multiple
+            accept=".json,.txt,.md,text/plain,application/json"
+            className="hidden"
+            onChange={(e) => {
+              void importFiles(e.target.files)
+              e.target.value = ''
+            }}
+          />
+          <Button variant="outline" onClick={() => fileInput.current?.click()}>
+            <Upload /> Import
+          </Button>
+          {macros.length > 0 && (
+            <Button variant="outline" onClick={exportFile}>
+              <Download /> Export
+            </Button>
+          )}
+          <Button onClick={add}>
+            <Plus /> New macro
+          </Button>
+        </div>
       </div>
+
+      {importNote && (
+        <p className={cn('-mt-3 text-sm', importNote.ok ? 'text-muted-foreground' : 'text-destructive')}>
+          {importNote.text}
+        </p>
+      )}
 
       {!trusted && (
         <Card className="border-amber-500/40 py-4">
@@ -225,7 +304,10 @@ export function MacrosPage() {
         <Card className="items-center py-12 text-center">
           <CardHeader className="w-full">
             <CardTitle>No macros yet</CardTitle>
-            <CardDescription>Create one to type an email, a signature or a code snippet with one shortcut.</CardDescription>
+            <CardDescription>
+              Create one to type an email, a signature or a code snippet with one shortcut, or import a .txt or .json
+              file.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Button variant="secondary" onClick={add}>
