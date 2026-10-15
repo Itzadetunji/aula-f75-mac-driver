@@ -2,335 +2,335 @@
   "app": {
     "title": "AULA F75 Mac Driver",
     "tabs": {
-      "lighting": "Lighting",
+      "lighting": "Éclairage",
       "macros": "Macros",
-      "layout": "Layout",
-      "settings": "Settings",
-      "lab": "Protocol lab"
+      "layout": "Disposition",
+      "settings": "Réglages",
+      "lab": "Laboratoire de protocole"
     },
     "status": {
-      "helperOffline": "Helper offline",
-      "notConnected": "Keyboard not connected",
-      "unknownModel": "F75 (model {{id}})",
-      "wireless": "{{model}} · 2.4 GHz dongle",
+      "helperOffline": "Assistant hors ligne",
+      "notConnected": "Clavier non connecté",
+      "unknownModel": "F75 (modèle {{id}})",
+      "wireless": "{{model}} · Dongle 2,4 GHz",
       "wired": "{{model}} · fw {{firmware}}"
     },
-    "problem": "Problem talking to the keyboard",
+    "problem": "Problème de communication avec le clavier",
     "paused": {
-      "title": "Paused",
-      "description": "The app's lighting and macros are off, so the keyboard shows its own saved effect.",
-      "resume": "Resume",
+      "title": "En pause",
+      "description": "L'éclairage et les macros de l'app sont désactivés ; le clavier affiche donc son propre effet enregistré.",
+      "resume": "Reprendre",
       "pause": "Pause",
-      "blocked": "The app is paused, so nothing is sent to the keyboard. Resume to make changes."
+      "blocked": "L'app est en pause : rien n'est envoyé au clavier. Reprenez pour effectuer des modifications."
     }
   },
 
   "common": {
-    "brightness": "Brightness · {{value}}",
-    "speed": "Speed · {{value}}",
-    "sensitivity": "Sensitivity · {{value}}",
-    "colour": "Colour",
-    "colourNamed": "Colour · {{name}}",
+    "brightness": "Luminosité · {{value}}",
+    "speed": "Vitesse · {{value}}",
+    "sensitivity": "Sensibilité · {{value}}",
+    "colour": "Couleur",
+    "colourNamed": "Couleur · {{name}}",
     "style": "Style",
-    "settings": "Settings",
-    "noSettings": "No settings for this effect.",
-    "multicolour": "Multicolour"
+    "settings": "Réglages",
+    "noSettings": "Aucun réglage pour cet effet.",
+    "multicolour": "Multicolore"
   },
 
   "effects": {
-    "hardware": { "label": "On-board", "hint": "The keyboard's own saved effect (Fn shortcuts)." },
-    "static": { "label": "Static", "hint": "One colour on every key." },
-    "breathing": { "label": "Breathing", "hint": "Fades the colour in and out." },
-    "spectrum": { "label": "Spectrum", "hint": "Cycles the whole board through the rainbow." },
-    "wave": { "label": "Wave", "hint": "Rainbow sweeping across the board." },
-    "music": { "label": "Music", "hint": "A spectrum that dances to whatever your Mac is playing." },
-    "custom": { "label": "Per-key", "hint": "Paint individual keys." },
-    "off": { "label": "Off", "hint": "All LEDs off." }
+    "hardware": { "label": "Intégré", "hint": "L'effet enregistré sur le clavier lui-même (raccourcis Fn)." },
+    "static": { "label": "Statique", "hint": "Une seule couleur sur toutes les touches." },
+    "breathing": { "label": "Respiration", "hint": "Fait apparaître et disparaître la couleur en fondu." },
+    "spectrum": { "label": "Spectre", "hint": "Fait parcourir l'arc-en-ciel à tout le clavier." },
+    "wave": { "label": "Vague", "hint": "Un arc-en-ciel qui balaie le clavier." },
+    "music": { "label": "Musique", "hint": "Un spectre qui danse au rythme de ce que lit votre Mac." },
+    "custom": { "label": "Par touche", "hint": "Colorez chaque touche individuellement." },
+    "off": { "label": "Désactivé", "hint": "Toutes les LED éteintes." }
   },
 
   "musicStyles": {
     "horizontal": {
       "label": "Horizontal",
-      "description": "Each row is a band filling left to right: bass on the bottom row, treble on the top."
+      "description": "Chaque rangée est une bande qui se remplit de gauche à droite : les basses sur la rangée du bas, les aigus sur celle du haut."
     },
     "heat": {
-      "label": "Heat bars",
-      "description": "Bars from the bottom, green at the base through yellow to red at the top."
+      "label": "Barres de chaleur",
+      "description": "Des barres depuis le bas : du vert à la base au rouge en haut, en passant par le jaune."
     },
     "rainbow": {
-      "label": "Rainbow bars",
-      "description": "Bars from the bottom, each column its own colour of the rainbow."
+      "label": "Barres arc-en-ciel",
+      "description": "Des barres depuis le bas, chaque colonne avec sa propre couleur de l'arc-en-ciel."
     }
   },
 
   "lighting": {
     "tabs": {
-      "live": "Live (app)",
-      "onboard": "Saved on keyboard"
+      "live": "En direct (app)",
+      "onboard": "Enregistré sur le clavier"
     },
     "selection": {
-      "none": "No keys selected",
-      "count_one": "{{count}} key selected",
-      "count_other": "{{count}} keys selected",
-      "selectAll": "Select all",
-      "deselect": "Deselect",
-      "applyColour": "Apply colour",
-      "turnOff": "Turn off"
+      "none": "Aucune touche sélectionnée",
+      "count_one": "{{count}} touche sélectionnée",
+      "count_other": "{{count}} touches sélectionnées",
+      "selectAll": "Tout sélectionner",
+      "deselect": "Désélectionner",
+      "applyColour": "Appliquer la couleur",
+      "turnOff": "Éteindre"
     },
     "help": {
-      "click": "Click a key to select it, click it again to deselect",
-      "multi": "Hold <kbd>⇧ Shift</kbd> or <kbd>⌘ Command</kbd> and click to select multiple keys",
-      "drag": "Drag across keys to select a group",
-      "all": "<kbd>⌘ A</kbd> selects all · <kbd>Esc</kbd> or click the board's edge to deselect all",
-      "thenPick": "Then pick a colour on the right to light the selected keys"
+      "click": "Cliquez sur une touche pour la sélectionner, cliquez à nouveau pour la désélectionner",
+      "multi": "Maintenez <kbd>⇧ Maj</kbd> ou <kbd>⌘ Commande</kbd> et cliquez pour sélectionner plusieurs touches",
+      "drag": "Faites glisser sur les touches pour sélectionner un groupe",
+      "all": "<kbd>⌘ A</kbd> sélectionne tout · <kbd>Échap</kbd> ou un clic sur le bord du clavier désélectionne tout",
+      "thenPick": "Choisissez ensuite une couleur à droite pour allumer les touches sélectionnées"
     },
     "preview": {
-      "music": "Play something on your Mac and the bars follow the music.",
-      "live": "Live preview of what the keyboard is showing.",
-      "storedEffect": "The keyboard is running its saved effect: {{name}}.",
-      "tryIt": "Click keys or type to try it.",
-      "ownEffect": "The keyboard is running its own saved effect."
+      "music": "Lancez de la musique sur votre Mac et les barres suivent le rythme.",
+      "live": "Aperçu en direct de ce qu'affiche le clavier.",
+      "storedEffect": "Le clavier exécute son effet enregistré : {{name}}.",
+      "tryIt": "Cliquez sur les touches ou tapez pour l'essayer.",
+      "ownEffect": "Le clavier exécute son propre effet enregistré."
     },
     "effectCard": {
-      "title": "Effect",
-      "description": "Effects other than On-board are driven by this app and stay active while it is running (even with the window closed).",
-      "wireless": "Over the 2.4 GHz dongle, colours are rounded a little to fit the radio link, and the keyboard must be on Fixed on (animated effects paint over the app's lighting)."
+      "title": "Effet",
+      "description": "Les effets autres qu'Intégré sont pilotés par cette app et restent actifs tant qu'elle tourne (même fenêtre fermée).",
+      "wireless": "Via le dongle 2,4 GHz, les couleurs sont légèrement arrondies pour s'adapter à la liaison radio, et le clavier doit être sur Fixe (les effets animés recouvrent l'éclairage de l'app)."
     },
-    "keyColour": "Key colour",
-    "musicPrivacy": "The app listens to your Mac's sound output only (no microphone, nothing is recorded). The first time, macOS asks for Screen & System Audio Recording permission.",
-    "fillAll": "Fill all",
-    "clearAll": "Clear all"
+    "keyColour": "Couleur de la touche",
+    "musicPrivacy": "L'app écoute uniquement la sortie audio de votre Mac (pas de micro, rien n'est enregistré). La première fois, macOS demande l'autorisation Enregistrement de l'écran et de l'audio système.",
+    "fillAll": "Tout remplir",
+    "clearAll": "Tout effacer"
   },
 
   "onboard": {
-    "connectCable": "Connect the keyboard with the USB cable to read its saved lighting.",
-    "reading": "Reading the lighting saved on the keyboard…",
-    "retrying": "{{error}} Retrying…",
+    "connectCable": "Connectez le clavier avec le câble USB pour lire son éclairage enregistré.",
+    "reading": "Lecture de l'éclairage enregistré sur le clavier…",
+    "retrying": "{{error}} Nouvelle tentative…",
     "preview": {
-      "musicLive": "Live: play something on your Mac and the keyboard follows it.",
-      "musicDemo": "Demo of the Music effect. Click the Music tile to stream it to the keyboard.",
-      "reactiveDemo": "Demo: click keys or type to try it out.",
-      "demo": "Demo of the effect, roughly how the keyboard shows it.",
-      "runsItself": "The keyboard runs this itself, even when it isn't connected to this Mac."
+      "musicLive": "En direct : lancez de la musique sur votre Mac et le clavier la suit.",
+      "musicDemo": "Démo de l'effet Musique. Cliquez sur la vignette Musique pour l'envoyer au clavier.",
+      "reactiveDemo": "Démo : cliquez sur les touches ou tapez pour l'essayer.",
+      "demo": "Démo de l'effet, à peu près tel que le clavier l'affiche.",
+      "runsItself": "Le clavier exécute cela lui-même, même lorsqu'il n'est pas connecté à ce Mac."
     },
-    "appOverrides": "The app's live lighting is covering the keyboard's own effect right now. Picking an effect here switches the app to On-board so you can see the result.",
+    "appOverrides": "L'éclairage en direct de l'app recouvre actuellement l'effet propre du clavier. Choisir un effet ici fait passer l'app sur Intégré pour que vous voyiez le résultat.",
     "savedEffect": {
-      "title": "Saved effect",
-      "description": "Stored on the keyboard, the same list you cycle through with Fn shortcuts. Changes apply straight away."
+      "title": "Effet enregistré",
+      "description": "Stocké sur le clavier, c'est la même liste que vous parcourez avec les raccourcis Fn. Les modifications s'appliquent immédiatement."
     },
-    "unsupportedTitle": "This effect stays dark on this keyboard's firmware.",
-    "perKeyComing": "Per-key mode editing is coming next.",
-    "savedDot": "Saved on the keyboard",
-    "savedDotStreaming": "Saved on the keyboard (shown when the app stops streaming)",
-    "wirelessNote": "Connected through the 2.4 GHz dongle, which can't read or change the effects stored on the keyboard. Plug in the USB cable to edit them.",
-    "musicTileTitle": "Made by this app and streamed to the keyboard",
-    "effectFallback": "Effect {{id}}",
-    "musicDescription": "Streamed by this app over the USB cable or the 2.4 GHz dongle.",
-    "settingsDescription": "The keyboard remembers these separately for every effect.",
-    "musicIntro": "Lights that follow whatever your Mac is playing. Pick a style below.",
-    "musicExplainer": "The keyboard has no way to hear audio, so this can't live in its memory. The app keeps it running, even with the window closed, and sends it wirelessly through the dongle when the cable is unplugged. When the app quits, the keyboard goes back to the effect saved on it.",
-    "musicDongleWarning": "For the dongle, the keyboard must be on Fixed on: animated effects repaint the keys and hide the stream.",
-    "unsupported": "Your keyboard's firmware doesn't seem to support this effect: it stays dark. Pick another one.",
-    "brightnessZero": "Brightness is 0, so the keyboard will be dark on this effect.",
-    "reactive": "Reacts to typing. Click keys above or type to try it.",
-    "selfDefine": "The keyboard is showing its saved per-key colours. Editing them here is coming next.",
-    "saving": "Saving to the keyboard…"
+    "unsupportedTitle": "Cet effet reste éteint avec le firmware de ce clavier.",
+    "perKeyComing": "L'édition du mode par touche arrive prochainement.",
+    "savedDot": "Enregistré sur le clavier",
+    "savedDotStreaming": "Enregistré sur le clavier (affiché lorsque l'app cesse la diffusion)",
+    "wirelessNote": "Connecté via le dongle 2,4 GHz, qui ne peut ni lire ni modifier les effets stockés sur le clavier. Branchez le câble USB pour les modifier.",
+    "musicTileTitle": "Créé par cette app et diffusé vers le clavier",
+    "effectFallback": "Effet {{id}}",
+    "musicDescription": "Diffusé par cette app via le câble USB ou le dongle 2,4 GHz.",
+    "settingsDescription": "Le clavier mémorise ces réglages séparément pour chaque effet.",
+    "musicIntro": "Des lumières qui suivent ce que lit votre Mac. Choisissez un style ci-dessous.",
+    "musicExplainer": "Le clavier ne peut pas capter le son ; cela ne peut donc pas résider dans sa mémoire. L'app le maintient actif, même fenêtre fermée, et l'envoie sans fil via le dongle lorsque le câble est débranché. Quand l'app se ferme, le clavier revient à l'effet enregistré sur lui.",
+    "musicDongleWarning": "Avec le dongle, le clavier doit être sur Fixe : les effets animés repeignent les touches et masquent le flux.",
+    "unsupported": "Le firmware de votre clavier ne semble pas prendre en charge cet effet : il reste éteint. Choisissez-en un autre.",
+    "brightnessZero": "La luminosité est à 0 ; le clavier restera donc éteint avec cet effet.",
+    "reactive": "Réagit à la frappe. Cliquez sur les touches ci-dessus ou tapez pour l'essayer.",
+    "selfDefine": "Le clavier affiche ses couleurs par touche enregistrées. Leur modification ici arrive prochainement.",
+    "saving": "Enregistrement sur le clavier…"
   },
 
   "onboardEffects": {
-    "0": { "name": "Off", "description": "All lighting is turned off." },
-    "1": { "name": "Fixed on", "description": "Every key stays lit in one steady colour." },
-    "2": { "name": "Respire", "description": "The whole board slowly fades in and out of the chosen colour, like breathing." },
-    "3": { "name": "Rainbow", "description": "The whole board smoothly changes from one colour to the next, without fading out." },
-    "4": { "name": "Flash away", "description": "Pressing a key sends light along its row in both directions, fading out as it goes." },
-    "5": { "name": "Raindrops", "description": "Random keys light up and fade, like drops of rain landing on the board." },
-    "6": { "name": "Rainbow wheel", "description": "A rainbow spins around the centre of the keyboard." },
-    "7": { "name": "Ripples shining", "description": "Pressing a key sends a ring of light rippling outwards from it." },
-    "8": { "name": "Stars twinkle", "description": "Keys twinkle on and off at random, like stars." },
-    "9": { "name": "Shadow disappear", "description": "The board stays lit; a key you press goes dark and slowly lights back up." },
-    "10": { "name": "Retro snake", "description": "A short trail of light snakes back and forth across the rows." },
-    "11": { "name": "Neon stream", "description": "Bands of colour stream across the board from side to side." },
-    "12": { "name": "Reaction", "description": "Only the keys you press light up, then fade out." },
-    "13": { "name": "Sine wave", "description": "A wave of brightness rolls across the board." },
-    "14": { "name": "Retinue scanning", "description": "A bar of light sweeps left and right across the board." },
-    "15": { "name": "Rotating windmill", "description": "Coloured blades rotate around the centre like a windmill." },
-    "16": { "name": "Colorful waterfall", "description": "Colours pour down the board from the top row to the bottom." },
-    "17": { "name": "Blossoming", "description": "Colour blooms outwards from the middle of the keyboard." },
-    "18": { "name": "Rotating storm", "description": "A spiral of colour swirls around the centre." },
-    "21": { "name": "Self-define", "description": "Shows the per-key colours saved on the keyboard." }
+    "0": { "name": "Désactivé", "description": "Tout l'éclairage est éteint." },
+    "1": { "name": "Fixe", "description": "Chaque touche reste allumée d'une couleur constante." },
+    "2": { "name": "Respiration", "description": "Tout le clavier s'estompe lentement dans la couleur choisie puis en ressort, comme une respiration." },
+    "3": { "name": "Arc-en-ciel", "description": "Tout le clavier passe en douceur d'une couleur à la suivante, sans s'éteindre." },
+    "4": { "name": "Éclair latéral", "description": "Appuyer sur une touche envoie de la lumière le long de sa rangée dans les deux sens, en s'estompant." },
+    "5": { "name": "Gouttes de pluie", "description": "Des touches au hasard s'allument puis s'estompent, comme des gouttes de pluie tombant sur le clavier." },
+    "6": { "name": "Roue arc-en-ciel", "description": "Un arc-en-ciel tourne autour du centre du clavier." },
+    "7": { "name": "Ondes lumineuses", "description": "Appuyer sur une touche envoie un anneau de lumière qui se propage depuis elle." },
+    "8": { "name": "Étoiles scintillantes", "description": "Les touches scintillent au hasard, comme des étoiles." },
+    "9": { "name": "Ombre fugace", "description": "Le clavier reste allumé ; la touche pressée s'éteint puis se rallume lentement." },
+    "10": { "name": "Serpent rétro", "description": "Une courte traînée de lumière serpente d'avant en arrière sur les rangées." },
+    "11": { "name": "Flux néon", "description": "Des bandes de couleur défilent d'un côté à l'autre du clavier." },
+    "12": { "name": "Réaction", "description": "Seules les touches pressées s'allument, puis s'estompent." },
+    "13": { "name": "Onde sinusoïdale", "description": "Une vague de luminosité traverse le clavier." },
+    "14": { "name": "Balayage", "description": "Une barre de lumière balaie le clavier de gauche à droite et inversement." },
+    "15": { "name": "Moulin à vent", "description": "Des pales colorées tournent autour du centre comme un moulin à vent." },
+    "16": { "name": "Cascade de couleurs", "description": "Les couleurs se déversent sur le clavier, de la rangée du haut vers celle du bas." },
+    "17": { "name": "Éclosion", "description": "La couleur s'épanouit vers l'extérieur depuis le milieu du clavier." },
+    "18": { "name": "Tempête tournante", "description": "Une spirale de couleurs tourbillonne autour du centre." },
+    "21": { "name": "Personnalisé", "description": "Affiche les couleurs par touche enregistrées sur le clavier." }
   },
 
   "onboardColors": {
-    "red": "Red",
-    "green": "Green",
-    "blue": "Blue",
-    "yellow": "Yellow",
+    "red": "Rouge",
+    "green": "Vert",
+    "blue": "Bleu",
+    "yellow": "Jaune",
     "magenta": "Magenta",
     "cyan": "Cyan",
-    "white": "White"
+    "white": "Blanc"
   },
 
   "macros": {
     "title": "Macros",
-    "description": "Press a shortcut anywhere on your Mac and the app types the text for you. Shortcuts must start with ⌘, ⌥, ⌃ or ⇧. Fn can't be used: the F75 handles it internally and never sends it to macOS.",
-    "import": "Import",
-    "export": "Export",
-    "new": "New macro",
+    "description": "Appuyez sur un raccourci n'importe où sur votre Mac et l'app saisit le texte à votre place. Les raccourcis doivent commencer par ⌘, ⌥, ⌃ ou ⇧. Fn est inutilisable : le F75 le gère en interne et ne l'envoie jamais à macOS.",
+    "import": "Importer",
+    "export": "Exporter",
+    "new": "Nouvelle macro",
     "defaultName": "Macro {{number}}",
-    "namePlaceholder": "Macro name",
-    "enabled": "Enabled",
-    "delete": "Delete macro",
-    "shortcut": "Shortcut",
-    "typesThis": "Types this",
-    "textPlaceholder": "e.g. adetunji@example.com",
-    "pressEnter": "Press Return after typing",
-    "recordPrompt": "Press ⌘, ⌥, ⌃ or ⇧ + a key… (Esc to cancel)",
-    "recordIdle": "Click to record shortcut",
+    "namePlaceholder": "Nom de la macro",
+    "enabled": "Activée",
+    "delete": "Supprimer la macro",
+    "shortcut": "Raccourci",
+    "typesThis": "Saisit ceci",
+    "textPlaceholder": "p. ex. adetunji@example.com",
+    "pressEnter": "Appuyer sur Retour après la saisie",
+    "recordPrompt": "Appuyez sur ⌘, ⌥, ⌃ ou ⇧ + une touche… (Échap pour annuler)",
+    "recordIdle": "Cliquez pour enregistrer le raccourci",
     "accessibility": {
-      "title": "Accessibility access needed",
-      "description": "macOS only lets apps type into other apps once you allow it in System Settings → Privacy & Security → Accessibility.",
-      "allow": "Allow access"
+      "title": "Accès à l'accessibilité requis",
+      "description": "macOS n'autorise les apps à saisir du texte dans d'autres apps qu'une fois que vous l'avez permis dans Réglages Système → Confidentialité et sécurité → Accessibilité.",
+      "allow": "Autoriser l'accès"
     },
     "empty": {
-      "title": "No macros yet",
-      "description": "Create one to type an email, a signature or a code snippet with one shortcut, or import a .txt or .json file."
+      "title": "Aucune macro pour l'instant",
+      "description": "Créez-en une pour saisir un e-mail, une signature ou un extrait de code avec un seul raccourci, ou importez un fichier .txt ou .json."
     },
-    "footer": "Macros run while this app is open, even with its window closed.",
-    "pausedFooter": "Macros are paused. Resume the app to use them again.",
-    "imported_one": "Imported {{count}} macro.",
-    "imported_other": "Imported {{count}} macros.",
-    "clashes_one": "{{count}} shortcut was already in use, so record a new one.",
-    "clashes_other": "{{count}} shortcuts were already in use, so record new ones.",
+    "footer": "Les macros fonctionnent tant que cette app est ouverte, même fenêtre fermée.",
+    "pausedFooter": "Les macros sont en pause. Reprenez l'app pour les réutiliser.",
+    "imported_one": "{{count}} macro importée.",
+    "imported_other": "{{count}} macros importées.",
+    "clashes_one": "{{count}} raccourci était déjà utilisé : enregistrez-en un nouveau.",
+    "clashes_other": "{{count}} raccourcis étaient déjà utilisés : enregistrez-en de nouveaux.",
     "errors": {
-      "accessibility": "Allow Accessibility access so macros can type for you.",
-      "taken": "This shortcut is already used by macOS, another app, or another macro.",
-      "unsupported": "This shortcut is not supported.",
-      "needsModifier": "Start the shortcut with ⌘, ⌥, ⌃ or ⇧.",
-      "shiftOnly": "⇧ on its own only works with keys like F1–F12; ⇧ + a letter is how you type capitals."
+      "accessibility": "Autorisez l'accès à l'accessibilité pour que les macros puissent saisir à votre place.",
+      "taken": "Ce raccourci est déjà utilisé par macOS, une autre app ou une autre macro.",
+      "unsupported": "Ce raccourci n'est pas pris en charge.",
+      "needsModifier": "Commencez le raccourci par ⌘, ⌥, ⌃ ou ⇧.",
+      "shiftOnly": "⇧ seul ne fonctionne qu'avec des touches comme F1–F12 ; ⇧ + une lettre sert à saisir des majuscules."
     },
     "fileErrors": {
-      "empty": "{{file}} is empty.",
-      "invalidJson": "{{file}} isn't valid JSON.",
-      "noMacros": "{{file}} has no macros in it.",
-      "noText": "{{file}} has no macros with text in it."
+      "empty": "{{file}} est vide.",
+      "invalidJson": "{{file}} n'est pas un JSON valide.",
+      "noMacros": "{{file}} ne contient aucune macro.",
+      "noText": "{{file}} ne contient aucune macro avec du texte."
     }
   },
 
   "layout": {
     "tabs": {
-      "ledMap": "LED map check",
-      "rightSide": "Right-side keys"
+      "ledMap": "Vérification de la carte des LED",
+      "rightSide": "Touches de droite"
     },
     "ledMap": {
-      "title": "LED map check",
-      "byKey": "By key",
-      "byIndex": "By LED index",
-      "keysDescription": "Only one key is lit on your keyboard. If it isn't the highlighted key here, note both names so the layout can be corrected.",
-      "rawDescription": "Steps through every LED index the keyboard accepts. Note which physical key lights up for indexes that show \"unmapped\".",
-      "space": "Space",
-      "position": "LED #{{led}} · key {{index}}/{{total}}",
-      "mappedTo": "mapped to {{key}}",
-      "unmapped": "unmapped"
+      "title": "Vérification de la carte des LED",
+      "byKey": "Par touche",
+      "byIndex": "Par index de LED",
+      "keysDescription": "Une seule touche est allumée sur votre clavier. Si ce n'est pas la touche mise en évidence ici, notez les deux noms afin que la disposition puisse être corrigée.",
+      "rawDescription": "Parcourt chaque index de LED accepté par le clavier. Notez quelle touche physique s'allume pour les index qui affichent \"non associé\".",
+      "space": "Espace",
+      "position": "LED n° {{led}} · touche {{index}}/{{total}}",
+      "mappedTo": "associée à {{key}}",
+      "unmapped": "non associé"
     },
     "rightColumn": {
-      "title": "Right-side keys",
-      "description": "F75 variants label the highlighted column differently. Pick the order printed on your keycaps, top to bottom.",
-      "row": "Row {{number}}",
-      "runSetup": "Run setup again"
+      "title": "Touches de droite",
+      "description": "Les variantes du F75 étiquettent différemment la colonne mise en évidence. Choisissez l'ordre imprimé sur vos touches, de haut en bas.",
+      "row": "Rangée {{number}}",
+      "runSetup": "Relancer la configuration"
     }
   },
 
   "onboarding": {
     "welcome": {
-      "description": "Customise your AULA F75 on your Mac, the way the Windows app does. Let's get your keyboard set up."
+      "description": "Personnalisez votre AULA F75 sur votre Mac, comme le fait l'app Windows. Configurons votre clavier."
     },
     "features": {
-      "lighting": { "title": "Lighting effects", "text": "Static, breathing, spectrum and wave." },
-      "perKey": { "title": "Per-key RGB", "text": "Paint every key its own colour." },
-      "native": { "title": "Native on macOS", "text": "Talks to the keyboard directly, no Windows needed." }
+      "lighting": { "title": "Effets d'éclairage", "text": "Statique, respiration, spectre et vague." },
+      "perKey": { "title": "RVB par touche", "text": "Donnez à chaque touche sa propre couleur." },
+      "native": { "title": "Natif sur macOS", "text": "Dialogue directement avec le clavier, sans Windows." }
     },
     "keyboardType": {
-      "title": "Which F75 do you have?",
-      "description": "F75 models differ in the keys on the right-hand side. Choose the one that matches the highlighted keys on your keyboard, from top to bottom.",
-      "label": "Right-side keys",
-      "custom": "Custom layout",
-      "later": "You can change this later in the Layout tab."
+      "title": "Quel F75 possédez-vous ?",
+      "description": "Les modèles F75 diffèrent par les touches du côté droit. Choisissez celui qui correspond aux touches mises en évidence sur votre clavier, de haut en bas.",
+      "label": "Touches de droite",
+      "custom": "Disposition personnalisée",
+      "later": "Vous pourrez modifier cela plus tard dans l'onglet Disposition."
     },
-    "back": "Back",
-    "next": "Next",
-    "start": "Get started",
-    "credit": "Built by Adetunji with love ❤️"
+    "back": "Retour",
+    "next": "Suivant",
+    "start": "Commencer",
+    "credit": "Conçu avec amour par Adetunji ❤️"
   },
 
   "lab": {
-    "title": "Protocol lab (read-only)",
-    "description": "Sends a <code>06 82 …</code> read request and shows the reply. Change a setting with the keyboard's Fn shortcuts, read again, and changed bytes are highlighted. This is how on-board effects, key maps and macros get mapped out. Nothing here writes to the keyboard.",
-    "placeholder": "hex bytes",
-    "read": "Read"
+    "title": "Laboratoire de protocole (lecture seule)",
+    "description": "Envoie une requête de lecture <code>06 82 …</code> et affiche la réponse. Modifiez un réglage avec les raccourcis Fn du clavier, relisez, et les octets modifiés sont mis en évidence. C'est ainsi que les effets intégrés, les cartes de touches et les macros sont cartographiés. Rien ici n'écrit sur le clavier.",
+    "placeholder": "octets hexadécimaux",
+    "read": "Lire"
   },
 
   "settings": {
-    "title": "Settings",
+    "title": "Réglages",
     "device": {
-      "title": "Device",
-      "description": "The keyboard this app is talking to.",
-      "model": "Model",
-      "firmware": "Firmware version",
-      "firmwareDongle": "{{version}} (reported by the dongle)",
-      "connection": "Connection",
-      "wired": "USB cable",
-      "wireless": "2.4 GHz dongle",
-      "software": "App version",
-      "notConnected": "Not connected",
-      "unknown": "Unknown"
+      "title": "Appareil",
+      "description": "Le clavier avec lequel cette app communique.",
+      "model": "Modèle",
+      "firmware": "Version du firmware",
+      "firmwareDongle": "{{version}} (indiquée par le dongle)",
+      "connection": "Connexion",
+      "wired": "Câble USB",
+      "wireless": "Dongle 2,4 GHz",
+      "software": "Version de l'app",
+      "notConnected": "Non connecté",
+      "unknown": "Inconnu"
     },
     "language": {
-      "title": "Language",
-      "description": "The language of the app and the menu bar."
+      "title": "Langue",
+      "description": "La langue de l'app et de la barre des menus."
     },
     "app": {
       "title": "App",
-      "running": "Running",
-      "runningDescription": "Turn off to pause the app's lighting and macros. The keyboard shows its own saved effect until you turn it back on.",
-      "close": "When you close the window",
-      "closeMenubar": "Keep running in the menu bar",
-      "closeQuit": "Quit the app",
-      "closeDescription": "In the menu bar, live lighting, Music and macros keep working with the window closed."
+      "running": "En cours d'exécution",
+      "runningDescription": "Désactivez pour mettre en pause l'éclairage et les macros de l'app. Le clavier affiche son propre effet enregistré jusqu'à la réactivation.",
+      "close": "À la fermeture de la fenêtre",
+      "closeMenubar": "Continuer dans la barre des menus",
+      "closeQuit": "Quitter l'app",
+      "closeDescription": "Dans la barre des menus, l'éclairage en direct, Musique et les macros continuent de fonctionner fenêtre fermée."
     },
     "keyboard": {
-      "title": "Keyboard",
-      "description": "Saved on the keyboard itself.",
-      "cableOnly": "Connect the USB cable to change these. Over the 2.4 GHz dongle, saving settings is unsafe, so the app doesn't allow it.",
-      "notConnected": "Connect the keyboard with the USB cable to change these.",
-      "reading": "Reading the keyboard's settings…",
-      "saving": "Saving to the keyboard…",
-      "unexpected": "The keyboard reported a value the app doesn't recognise, so this setting is read-only."
+      "title": "Clavier",
+      "description": "Enregistré sur le clavier lui-même.",
+      "cableOnly": "Branchez le câble USB pour modifier ces réglages. Via le dongle 2,4 GHz, l'enregistrement des réglages n'est pas sûr ; l'app ne le permet donc pas.",
+      "notConnected": "Connectez le clavier avec le câble USB pour modifier ces réglages.",
+      "reading": "Lecture des réglages du clavier…",
+      "saving": "Enregistrement sur le clavier…",
+      "unexpected": "Le clavier a signalé une valeur que l'app ne reconnaît pas ; ce réglage est donc en lecture seule."
     },
     "sleep": {
-      "title": "Sleep",
-      "description": "Turn the backlight off after the keyboard has been idle for a while.",
-      "after": "Sleep after · {{duration}}",
-      "seconds_one": "{{count}} second",
-      "seconds_other": "{{count}} seconds",
+      "title": "Veille",
+      "description": "Éteint le rétroéclairage après une période d'inactivité du clavier.",
+      "after": "Veille après · {{duration}}",
+      "seconds_one": "{{count}} seconde",
+      "seconds_other": "{{count}} secondes",
       "minutes_one": "{{count}} minute",
       "minutes_other": "{{count}} minutes"
     },
     "debounce": {
-      "description": "How long the keyboard waits for a key's contacts to settle. Raise it if a key types twice; lower it for slightly faster input.",
-      "value": "Debounce · {{value}} ms",
-      "default": "Default ({{value}} ms)",
-      "notVerified": "Not available yet: where this keyboard stores debounce hasn't been confirmed, so the app won't write it."
+      "description": "Durée pendant laquelle le clavier attend que les contacts d'une touche se stabilisent. Augmentez-la si une touche s'écrit deux fois ; diminuez-la pour une saisie un peu plus rapide.",
+      "value": "Anti-rebond · {{value}} ms",
+      "default": "Par défaut ({{value}} ms)",
+      "notVerified": "Pas encore disponible : l'emplacement où ce clavier stocke l'anti-rebond n'a pas été confirmé ; l'app ne l'écrira donc pas."
     }
   },
 
   "menu": {
-    "connectedWired": "AULA F75 · USB cable",
-    "connectedWireless": "AULA F75 · 2.4 GHz dongle",
-    "disconnected": "AULA F75 · Not connected",
-    "pause": "Pause lighting and macros",
-    "resume": "Resume lighting and macros",
-    "lighting": "Lighting",
-    "open": "Open AULA F75 Mac Driver",
-    "quit": "Quit"
+    "connectedWired": "AULA F75 · Câble USB",
+    "connectedWireless": "AULA F75 · Dongle 2,4 GHz",
+    "disconnected": "AULA F75 · Non connecté",
+    "pause": "Mettre en pause l'éclairage et les macros",
+    "resume": "Reprendre l'éclairage et les macros",
+    "lighting": "Éclairage",
+    "open": "Ouvrir AULA F75 Mac Driver",
+    "quit": "Quitter"
   }
 }

@@ -2,335 +2,335 @@
   "app": {
     "title": "AULA F75 Mac Driver",
     "tabs": {
-      "lighting": "Lighting",
-      "macros": "Macros",
-      "layout": "Layout",
-      "settings": "Settings",
-      "lab": "Protocol lab"
+      "lighting": "灯光",
+      "macros": "宏",
+      "layout": "布局",
+      "settings": "设置",
+      "lab": "协议实验室"
     },
     "status": {
-      "helperOffline": "Helper offline",
-      "notConnected": "Keyboard not connected",
-      "unknownModel": "F75 (model {{id}})",
-      "wireless": "{{model}} · 2.4 GHz dongle",
-      "wired": "{{model}} · fw {{firmware}}"
+      "helperOffline": "辅助程序离线",
+      "notConnected": "键盘未连接",
+      "unknownModel": "F75（型号 {{id}}）",
+      "wireless": "{{model}} · 2.4 GHz 接收器",
+      "wired": "{{model}} · 固件 {{firmware}}"
     },
-    "problem": "Problem talking to the keyboard",
+    "problem": "与键盘通信时出现问题",
     "paused": {
-      "title": "Paused",
-      "description": "The app's lighting and macros are off, so the keyboard shows its own saved effect.",
-      "resume": "Resume",
-      "pause": "Pause",
-      "blocked": "The app is paused, so nothing is sent to the keyboard. Resume to make changes."
+      "title": "已暂停",
+      "description": "应用的灯光和宏已关闭，因此键盘显示其自身保存的效果。",
+      "resume": "继续",
+      "pause": "暂停",
+      "blocked": "应用已暂停，因此不会向键盘发送任何内容。请继续运行以进行更改。"
     }
   },
 
   "common": {
-    "brightness": "Brightness · {{value}}",
-    "speed": "Speed · {{value}}",
-    "sensitivity": "Sensitivity · {{value}}",
-    "colour": "Colour",
-    "colourNamed": "Colour · {{name}}",
-    "style": "Style",
-    "settings": "Settings",
-    "noSettings": "No settings for this effect.",
-    "multicolour": "Multicolour"
+    "brightness": "亮度 · {{value}}",
+    "speed": "速度 · {{value}}",
+    "sensitivity": "灵敏度 · {{value}}",
+    "colour": "颜色",
+    "colourNamed": "颜色 · {{name}}",
+    "style": "样式",
+    "settings": "设置",
+    "noSettings": "此效果没有可调设置。",
+    "multicolour": "多色"
   },
 
   "effects": {
-    "hardware": { "label": "On-board", "hint": "The keyboard's own saved effect (Fn shortcuts)." },
-    "static": { "label": "Static", "hint": "One colour on every key." },
-    "breathing": { "label": "Breathing", "hint": "Fades the colour in and out." },
-    "spectrum": { "label": "Spectrum", "hint": "Cycles the whole board through the rainbow." },
-    "wave": { "label": "Wave", "hint": "Rainbow sweeping across the board." },
-    "music": { "label": "Music", "hint": "A spectrum that dances to whatever your Mac is playing." },
-    "custom": { "label": "Per-key", "hint": "Paint individual keys." },
-    "off": { "label": "Off", "hint": "All LEDs off." }
+    "hardware": { "label": "板载", "hint": "键盘自身保存的效果（Fn 快捷键）。" },
+    "static": { "label": "静态", "hint": "所有按键显示同一种颜色。" },
+    "breathing": { "label": "呼吸", "hint": "颜色渐隐渐现。" },
+    "spectrum": { "label": "光谱", "hint": "让整个键盘循环渐变过彩虹色。" },
+    "wave": { "label": "波浪", "hint": "彩虹光带扫过键盘。" },
+    "music": { "label": "音乐", "hint": "随 Mac 正在播放的声音跳动的光谱。" },
+    "custom": { "label": "单键", "hint": "为单个按键上色。" },
+    "off": { "label": "关闭", "hint": "所有 LED 熄灭。" }
   },
 
   "musicStyles": {
     "horizontal": {
-      "label": "Horizontal",
-      "description": "Each row is a band filling left to right: bass on the bottom row, treble on the top."
+      "label": "水平",
+      "description": "每一行是一个频段，从左向右填充：低音在最下一行，高音在最上一行。"
     },
     "heat": {
-      "label": "Heat bars",
-      "description": "Bars from the bottom, green at the base through yellow to red at the top."
+      "label": "热力条",
+      "description": "从底部升起的条形，底部为绿色，经黄色过渡到顶部的红色。"
     },
     "rainbow": {
-      "label": "Rainbow bars",
-      "description": "Bars from the bottom, each column its own colour of the rainbow."
+      "label": "彩虹条",
+      "description": "从底部升起的条形，每一列各有彩虹中的一种颜色。"
     }
   },
 
   "lighting": {
     "tabs": {
-      "live": "Live (app)",
-      "onboard": "Saved on keyboard"
+      "live": "实时（应用）",
+      "onboard": "保存在键盘中"
     },
     "selection": {
-      "none": "No keys selected",
-      "count_one": "{{count}} key selected",
-      "count_other": "{{count}} keys selected",
-      "selectAll": "Select all",
-      "deselect": "Deselect",
-      "applyColour": "Apply colour",
-      "turnOff": "Turn off"
+      "none": "未选择按键",
+      "count_one": "已选择 {{count}} 个按键",
+      "count_other": "已选择 {{count}} 个按键",
+      "selectAll": "全选",
+      "deselect": "取消选择",
+      "applyColour": "应用颜色",
+      "turnOff": "关闭"
     },
     "help": {
-      "click": "Click a key to select it, click it again to deselect",
-      "multi": "Hold <kbd>⇧ Shift</kbd> or <kbd>⌘ Command</kbd> and click to select multiple keys",
-      "drag": "Drag across keys to select a group",
-      "all": "<kbd>⌘ A</kbd> selects all · <kbd>Esc</kbd> or click the board's edge to deselect all",
-      "thenPick": "Then pick a colour on the right to light the selected keys"
+      "click": "点击按键即可选中，再次点击取消选中",
+      "multi": "按住 <kbd>⇧ Shift</kbd> 或 <kbd>⌘ Command</kbd> 并点击可选择多个按键",
+      "drag": "在按键上拖动可选择一组按键",
+      "all": "<kbd>⌘ A</kbd> 全选 · 按 <kbd>Esc</kbd> 或点击键盘边缘可取消全部选择",
+      "thenPick": "然后在右侧选择颜色，点亮所选按键"
     },
     "preview": {
-      "music": "Play something on your Mac and the bars follow the music.",
-      "live": "Live preview of what the keyboard is showing.",
-      "storedEffect": "The keyboard is running its saved effect: {{name}}.",
-      "tryIt": "Click keys or type to try it.",
-      "ownEffect": "The keyboard is running its own saved effect."
+      "music": "在 Mac 上播放音乐，光柱会跟随音乐律动。",
+      "live": "键盘当前显示内容的实时预览。",
+      "storedEffect": "键盘正在运行其保存的效果：{{name}}。",
+      "tryIt": "点击按键或打字即可试用。",
+      "ownEffect": "键盘正在运行其自身保存的效果。"
     },
     "effectCard": {
-      "title": "Effect",
-      "description": "Effects other than On-board are driven by this app and stay active while it is running (even with the window closed).",
-      "wireless": "Over the 2.4 GHz dongle, colours are rounded a little to fit the radio link, and the keyboard must be on Fixed on (animated effects paint over the app's lighting)."
+      "title": "效果",
+      "description": "除“板载”以外的效果由本应用驱动，并在应用运行期间保持生效（即使关闭窗口）。",
+      "wireless": "通过 2.4 GHz 接收器时，颜色会略作取整以适应无线链路，并且键盘必须处于“常亮”模式（动态效果会覆盖应用的灯光）。"
     },
-    "keyColour": "Key colour",
-    "musicPrivacy": "The app listens to your Mac's sound output only (no microphone, nothing is recorded). The first time, macOS asks for Screen & System Audio Recording permission.",
-    "fillAll": "Fill all",
-    "clearAll": "Clear all"
+    "keyColour": "按键颜色",
+    "musicPrivacy": "应用只监听 Mac 的声音输出（不使用麦克风，不录制任何内容）。首次使用时，macOS 会请求“屏幕与系统音频录制”权限。",
+    "fillAll": "全部填充",
+    "clearAll": "全部清除"
   },
 
   "onboard": {
-    "connectCable": "Connect the keyboard with the USB cable to read its saved lighting.",
-    "reading": "Reading the lighting saved on the keyboard…",
-    "retrying": "{{error}} Retrying…",
+    "connectCable": "请使用 USB 线连接键盘，以读取其保存的灯光。",
+    "reading": "正在读取键盘中保存的灯光…",
+    "retrying": "{{error}} 正在重试…",
     "preview": {
-      "musicLive": "Live: play something on your Mac and the keyboard follows it.",
-      "musicDemo": "Demo of the Music effect. Click the Music tile to stream it to the keyboard.",
-      "reactiveDemo": "Demo: click keys or type to try it out.",
-      "demo": "Demo of the effect, roughly how the keyboard shows it.",
-      "runsItself": "The keyboard runs this itself, even when it isn't connected to this Mac."
+      "musicLive": "实时：在 Mac 上播放音乐，键盘会跟随律动。",
+      "musicDemo": "音乐效果演示。点击“音乐”图块即可将其推送到键盘。",
+      "reactiveDemo": "演示：点击按键或打字即可试用。",
+      "demo": "效果演示，大致呈现键盘上的显示效果。",
+      "runsItself": "键盘自行运行此效果，即使未连接到这台 Mac 也不受影响。"
     },
-    "appOverrides": "The app's live lighting is covering the keyboard's own effect right now. Picking an effect here switches the app to On-board so you can see the result.",
+    "appOverrides": "应用的实时灯光目前覆盖了键盘自身的效果。在此选择效果会将应用切换为“板载”，以便你查看结果。",
     "savedEffect": {
-      "title": "Saved effect",
-      "description": "Stored on the keyboard, the same list you cycle through with Fn shortcuts. Changes apply straight away."
+      "title": "已保存的效果",
+      "description": "存储在键盘中，与你用 Fn 快捷键切换的列表相同。更改会立即生效。"
     },
-    "unsupportedTitle": "This effect stays dark on this keyboard's firmware.",
-    "perKeyComing": "Per-key mode editing is coming next.",
-    "savedDot": "Saved on the keyboard",
-    "savedDotStreaming": "Saved on the keyboard (shown when the app stops streaming)",
-    "wirelessNote": "Connected through the 2.4 GHz dongle, which can't read or change the effects stored on the keyboard. Plug in the USB cable to edit them.",
-    "musicTileTitle": "Made by this app and streamed to the keyboard",
-    "effectFallback": "Effect {{id}}",
-    "musicDescription": "Streamed by this app over the USB cable or the 2.4 GHz dongle.",
-    "settingsDescription": "The keyboard remembers these separately for every effect.",
-    "musicIntro": "Lights that follow whatever your Mac is playing. Pick a style below.",
-    "musicExplainer": "The keyboard has no way to hear audio, so this can't live in its memory. The app keeps it running, even with the window closed, and sends it wirelessly through the dongle when the cable is unplugged. When the app quits, the keyboard goes back to the effect saved on it.",
-    "musicDongleWarning": "For the dongle, the keyboard must be on Fixed on: animated effects repaint the keys and hide the stream.",
-    "unsupported": "Your keyboard's firmware doesn't seem to support this effect: it stays dark. Pick another one.",
-    "brightnessZero": "Brightness is 0, so the keyboard will be dark on this effect.",
-    "reactive": "Reacts to typing. Click keys above or type to try it.",
-    "selfDefine": "The keyboard is showing its saved per-key colours. Editing them here is coming next.",
-    "saving": "Saving to the keyboard…"
+    "unsupportedTitle": "在此键盘的固件上，该效果保持熄灭。",
+    "perKeyComing": "单键模式编辑即将推出。",
+    "savedDot": "已保存在键盘中",
+    "savedDotStreaming": "已保存在键盘中（应用停止推送时显示）",
+    "wirelessNote": "当前通过 2.4 GHz 接收器连接，无法读取或更改键盘中存储的效果。请插上 USB 线以进行编辑。",
+    "musicTileTitle": "由本应用生成并推送到键盘",
+    "effectFallback": "效果 {{id}}",
+    "musicDescription": "由本应用通过 USB 线或 2.4 GHz 接收器推送。",
+    "settingsDescription": "键盘会为每个效果分别记住这些设置。",
+    "musicIntro": "跟随 Mac 正在播放的声音而变化的灯光。请在下方选择样式。",
+    "musicExplainer": "键盘无法收听音频，因此这无法保存在它的内存中。应用会让它持续运行（即使关闭窗口），并在拔掉线缆时通过接收器无线发送。应用退出后，键盘会恢复为其中保存的效果。",
+    "musicDongleWarning": "使用接收器时，键盘必须处于“常亮”模式：动态效果会重绘按键并掩盖推送的画面。",
+    "unsupported": "你键盘的固件似乎不支持此效果：它会保持熄灭。请选择其他效果。",
+    "brightnessZero": "亮度为 0，因此在此效果下键盘将保持熄灭。",
+    "reactive": "对打字做出反应。点击上方按键或打字即可试用。",
+    "selfDefine": "键盘正在显示其保存的单键颜色。在此编辑它们的功能即将推出。",
+    "saving": "正在保存到键盘…"
   },
 
   "onboardEffects": {
-    "0": { "name": "Off", "description": "All lighting is turned off." },
-    "1": { "name": "Fixed on", "description": "Every key stays lit in one steady colour." },
-    "2": { "name": "Respire", "description": "The whole board slowly fades in and out of the chosen colour, like breathing." },
-    "3": { "name": "Rainbow", "description": "The whole board smoothly changes from one colour to the next, without fading out." },
-    "4": { "name": "Flash away", "description": "Pressing a key sends light along its row in both directions, fading out as it goes." },
-    "5": { "name": "Raindrops", "description": "Random keys light up and fade, like drops of rain landing on the board." },
-    "6": { "name": "Rainbow wheel", "description": "A rainbow spins around the centre of the keyboard." },
-    "7": { "name": "Ripples shining", "description": "Pressing a key sends a ring of light rippling outwards from it." },
-    "8": { "name": "Stars twinkle", "description": "Keys twinkle on and off at random, like stars." },
-    "9": { "name": "Shadow disappear", "description": "The board stays lit; a key you press goes dark and slowly lights back up." },
-    "10": { "name": "Retro snake", "description": "A short trail of light snakes back and forth across the rows." },
-    "11": { "name": "Neon stream", "description": "Bands of colour stream across the board from side to side." },
-    "12": { "name": "Reaction", "description": "Only the keys you press light up, then fade out." },
-    "13": { "name": "Sine wave", "description": "A wave of brightness rolls across the board." },
-    "14": { "name": "Retinue scanning", "description": "A bar of light sweeps left and right across the board." },
-    "15": { "name": "Rotating windmill", "description": "Coloured blades rotate around the centre like a windmill." },
-    "16": { "name": "Colorful waterfall", "description": "Colours pour down the board from the top row to the bottom." },
-    "17": { "name": "Blossoming", "description": "Colour blooms outwards from the middle of the keyboard." },
-    "18": { "name": "Rotating storm", "description": "A spiral of colour swirls around the centre." },
-    "21": { "name": "Self-define", "description": "Shows the per-key colours saved on the keyboard." }
+    "0": { "name": "关闭", "description": "所有灯光均已关闭。" },
+    "1": { "name": "常亮", "description": "每个按键以同一种稳定的颜色保持点亮。" },
+    "2": { "name": "呼吸", "description": "整个键盘缓缓渐隐渐现于所选颜色，宛如呼吸。" },
+    "3": { "name": "彩虹", "description": "整个键盘平滑地由一种颜色变为下一种，不会熄灭。" },
+    "4": { "name": "闪光扩散", "description": "按下按键时，光沿所在行向两侧传播并逐渐消失。" },
+    "5": { "name": "雨滴", "description": "随机按键亮起并渐隐，如同雨滴落在键盘上。" },
+    "6": { "name": "彩虹轮", "description": "彩虹围绕键盘中心旋转。" },
+    "7": { "name": "闪耀涟漪", "description": "按下按键时，一圈光环从该键向外泛起涟漪。" },
+    "8": { "name": "星星闪烁", "description": "按键随机明灭闪烁，如同星星。" },
+    "9": { "name": "暗影消失", "description": "键盘保持点亮；按下的按键会熄灭，然后缓缓重新亮起。" },
+    "10": { "name": "复古贪吃蛇", "description": "一小段光带在各行之间来回蜿蜒游走。" },
+    "11": { "name": "霓虹流", "description": "彩色光带从一侧到另一侧流过键盘。" },
+    "12": { "name": "触发反应", "description": "只有按下的按键会亮起，随后渐隐。" },
+    "13": { "name": "正弦波", "description": "一道亮度波浪滚过键盘。" },
+    "14": { "name": "扫描", "description": "一条光带在键盘上左右扫动。" },
+    "15": { "name": "旋转风车", "description": "彩色叶片像风车一样围绕中心旋转。" },
+    "16": { "name": "彩色瀑布", "description": "色彩从顶行向底行倾泻而下。" },
+    "17": { "name": "绽放", "description": "色彩从键盘中央向外绽放。" },
+    "18": { "name": "旋转风暴", "description": "一道色彩螺旋围绕中心旋涡。" },
+    "21": { "name": "自定义", "description": "显示键盘中保存的单键颜色。" }
   },
 
   "onboardColors": {
-    "red": "Red",
-    "green": "Green",
-    "blue": "Blue",
-    "yellow": "Yellow",
-    "magenta": "Magenta",
-    "cyan": "Cyan",
-    "white": "White"
+    "red": "红色",
+    "green": "绿色",
+    "blue": "蓝色",
+    "yellow": "黄色",
+    "magenta": "品红色",
+    "cyan": "青色",
+    "white": "白色"
   },
 
   "macros": {
-    "title": "Macros",
-    "description": "Press a shortcut anywhere on your Mac and the app types the text for you. Shortcuts must start with ⌘, ⌥, ⌃ or ⇧. Fn can't be used: the F75 handles it internally and never sends it to macOS.",
-    "import": "Import",
-    "export": "Export",
-    "new": "New macro",
-    "defaultName": "Macro {{number}}",
-    "namePlaceholder": "Macro name",
-    "enabled": "Enabled",
-    "delete": "Delete macro",
-    "shortcut": "Shortcut",
-    "typesThis": "Types this",
-    "textPlaceholder": "e.g. adetunji@example.com",
-    "pressEnter": "Press Return after typing",
-    "recordPrompt": "Press ⌘, ⌥, ⌃ or ⇧ + a key… (Esc to cancel)",
-    "recordIdle": "Click to record shortcut",
+    "title": "宏",
+    "description": "在 Mac 上任意位置按下快捷键，应用就会为你输入文本。快捷键必须以 ⌘、⌥、⌃ 或 ⇧ 开头。无法使用 Fn：F75 在内部处理该键，不会将其发送给 macOS。",
+    "import": "导入",
+    "export": "导出",
+    "new": "新建宏",
+    "defaultName": "宏 {{number}}",
+    "namePlaceholder": "宏名称",
+    "enabled": "已启用",
+    "delete": "删除宏",
+    "shortcut": "快捷键",
+    "typesThis": "输入内容",
+    "textPlaceholder": "例如 adetunji@example.com",
+    "pressEnter": "输入后按下 Return 键",
+    "recordPrompt": "按下 ⌘、⌥、⌃ 或 ⇧ + 一个按键……（按 Esc 取消）",
+    "recordIdle": "点击以录制快捷键",
     "accessibility": {
-      "title": "Accessibility access needed",
-      "description": "macOS only lets apps type into other apps once you allow it in System Settings → Privacy & Security → Accessibility.",
-      "allow": "Allow access"
+      "title": "需要辅助功能权限",
+      "description": "只有在“系统设置 → 隐私与安全性 → 辅助功能”中授权后，macOS 才允许应用向其他应用输入内容。",
+      "allow": "允许访问"
     },
     "empty": {
-      "title": "No macros yet",
-      "description": "Create one to type an email, a signature or a code snippet with one shortcut, or import a .txt or .json file."
+      "title": "还没有宏",
+      "description": "创建一个宏，即可用一个快捷键输入电子邮件、签名或代码片段，也可以导入 .txt 或 .json 文件。"
     },
-    "footer": "Macros run while this app is open, even with its window closed.",
-    "pausedFooter": "Macros are paused. Resume the app to use them again.",
-    "imported_one": "Imported {{count}} macro.",
-    "imported_other": "Imported {{count}} macros.",
-    "clashes_one": "{{count}} shortcut was already in use, so record a new one.",
-    "clashes_other": "{{count}} shortcuts were already in use, so record new ones.",
+    "footer": "只要本应用处于打开状态，宏就会运行，即使关闭窗口也一样。",
+    "pausedFooter": "宏已暂停。请继续运行应用以重新使用。",
+    "imported_one": "已导入 {{count}} 个宏。",
+    "imported_other": "已导入 {{count}} 个宏。",
+    "clashes_one": "有 {{count}} 个快捷键已被占用，请重新录制。",
+    "clashes_other": "有 {{count}} 个快捷键已被占用，请重新录制。",
     "errors": {
-      "accessibility": "Allow Accessibility access so macros can type for you.",
-      "taken": "This shortcut is already used by macOS, another app, or another macro.",
-      "unsupported": "This shortcut is not supported.",
-      "needsModifier": "Start the shortcut with ⌘, ⌥, ⌃ or ⇧.",
-      "shiftOnly": "⇧ on its own only works with keys like F1–F12; ⇧ + a letter is how you type capitals."
+      "accessibility": "请允许辅助功能权限，以便宏为你输入内容。",
+      "taken": "此快捷键已被 macOS、其他应用或其他宏占用。",
+      "unsupported": "不支持此快捷键。",
+      "needsModifier": "请以 ⌘、⌥、⌃ 或 ⇧ 开头设置快捷键。",
+      "shiftOnly": "单独使用 ⇧ 仅适用于 F1–F12 等按键；⇧ + 字母用于输入大写字母。"
     },
     "fileErrors": {
-      "empty": "{{file}} is empty.",
-      "invalidJson": "{{file}} isn't valid JSON.",
-      "noMacros": "{{file}} has no macros in it.",
-      "noText": "{{file}} has no macros with text in it."
+      "empty": "{{file}} 为空。",
+      "invalidJson": "{{file}} 不是有效的 JSON。",
+      "noMacros": "{{file}} 中没有宏。",
+      "noText": "{{file}} 中没有带文本的宏。"
     }
   },
 
   "layout": {
     "tabs": {
-      "ledMap": "LED map check",
-      "rightSide": "Right-side keys"
+      "ledMap": "LED 映射检查",
+      "rightSide": "右侧按键"
     },
     "ledMap": {
-      "title": "LED map check",
-      "byKey": "By key",
-      "byIndex": "By LED index",
-      "keysDescription": "Only one key is lit on your keyboard. If it isn't the highlighted key here, note both names so the layout can be corrected.",
-      "rawDescription": "Steps through every LED index the keyboard accepts. Note which physical key lights up for indexes that show \"unmapped\".",
-      "space": "Space",
-      "position": "LED #{{led}} · key {{index}}/{{total}}",
-      "mappedTo": "mapped to {{key}}",
-      "unmapped": "unmapped"
+      "title": "LED 映射检查",
+      "byKey": "按按键",
+      "byIndex": "按 LED 索引",
+      "keysDescription": "键盘上只有一个按键亮起。如果它不是此处高亮的按键，请记下两个名称，以便修正布局。",
+      "rawDescription": "逐一遍历键盘接受的每个 LED 索引。对于显示“未映射”的索引，请记下亮起的是哪个物理按键。",
+      "space": "空格键",
+      "position": "LED #{{led}} · 按键 {{index}}/{{total}}",
+      "mappedTo": "映射到 {{key}}",
+      "unmapped": "未映射"
     },
     "rightColumn": {
-      "title": "Right-side keys",
-      "description": "F75 variants label the highlighted column differently. Pick the order printed on your keycaps, top to bottom.",
-      "row": "Row {{number}}",
-      "runSetup": "Run setup again"
+      "title": "右侧按键",
+      "description": "不同的 F75 版本对高亮列的标注不同。请按键帽上印刷的顺序从上到下选择。",
+      "row": "第 {{number}} 行",
+      "runSetup": "重新运行设置"
     }
   },
 
   "onboarding": {
     "welcome": {
-      "description": "Customise your AULA F75 on your Mac, the way the Windows app does. Let's get your keyboard set up."
+      "description": "在 Mac 上自定义你的 AULA F75，就像 Windows 应用那样。让我们来设置你的键盘。"
     },
     "features": {
-      "lighting": { "title": "Lighting effects", "text": "Static, breathing, spectrum and wave." },
-      "perKey": { "title": "Per-key RGB", "text": "Paint every key its own colour." },
-      "native": { "title": "Native on macOS", "text": "Talks to the keyboard directly, no Windows needed." }
+      "lighting": { "title": "灯光效果", "text": "静态、呼吸、光谱和波浪。" },
+      "perKey": { "title": "单键 RGB", "text": "为每个按键设置各自的颜色。" },
+      "native": { "title": "macOS 原生", "text": "直接与键盘通信，无需 Windows。" }
     },
     "keyboardType": {
-      "title": "Which F75 do you have?",
-      "description": "F75 models differ in the keys on the right-hand side. Choose the one that matches the highlighted keys on your keyboard, from top to bottom.",
-      "label": "Right-side keys",
-      "custom": "Custom layout",
-      "later": "You can change this later in the Layout tab."
+      "title": "你使用的是哪款 F75？",
+      "description": "不同 F75 型号的右侧按键有所不同。请选择与你键盘上高亮按键（从上到下）一致的那一款。",
+      "label": "右侧按键",
+      "custom": "自定义布局",
+      "later": "你可以稍后在“布局”标签页中更改。"
     },
-    "back": "Back",
-    "next": "Next",
-    "start": "Get started",
-    "credit": "Built by Adetunji with love ❤️"
+    "back": "返回",
+    "next": "下一步",
+    "start": "开始使用",
+    "credit": "由 Adetunji 用爱打造 ❤️"
   },
 
   "lab": {
-    "title": "Protocol lab (read-only)",
-    "description": "Sends a <code>06 82 …</code> read request and shows the reply. Change a setting with the keyboard's Fn shortcuts, read again, and changed bytes are highlighted. This is how on-board effects, key maps and macros get mapped out. Nothing here writes to the keyboard.",
-    "placeholder": "hex bytes",
-    "read": "Read"
+    "title": "协议实验室（只读）",
+    "description": "发送 <code>06 82 …</code> 读取请求并显示回复。使用键盘的 Fn 快捷键更改某项设置后再次读取，变化的字节会被高亮显示。板载效果、按键映射和宏就是这样被摸清的。此处不会向键盘写入任何内容。",
+    "placeholder": "十六进制字节",
+    "read": "读取"
   },
 
   "settings": {
-    "title": "Settings",
+    "title": "设置",
     "device": {
-      "title": "Device",
-      "description": "The keyboard this app is talking to.",
-      "model": "Model",
-      "firmware": "Firmware version",
-      "firmwareDongle": "{{version}} (reported by the dongle)",
-      "connection": "Connection",
-      "wired": "USB cable",
-      "wireless": "2.4 GHz dongle",
-      "software": "App version",
-      "notConnected": "Not connected",
-      "unknown": "Unknown"
+      "title": "设备",
+      "description": "本应用正在通信的键盘。",
+      "model": "型号",
+      "firmware": "固件版本",
+      "firmwareDongle": "{{version}}（由接收器报告）",
+      "connection": "连接方式",
+      "wired": "USB 线",
+      "wireless": "2.4 GHz 接收器",
+      "software": "应用版本",
+      "notConnected": "未连接",
+      "unknown": "未知"
     },
     "language": {
-      "title": "Language",
-      "description": "The language of the app and the menu bar."
+      "title": "语言",
+      "description": "应用和菜单栏所使用的语言。"
     },
     "app": {
-      "title": "App",
-      "running": "Running",
-      "runningDescription": "Turn off to pause the app's lighting and macros. The keyboard shows its own saved effect until you turn it back on.",
-      "close": "When you close the window",
-      "closeMenubar": "Keep running in the menu bar",
-      "closeQuit": "Quit the app",
-      "closeDescription": "In the menu bar, live lighting, Music and macros keep working with the window closed."
+      "title": "应用",
+      "running": "运行中",
+      "runningDescription": "关闭可暂停应用的灯光和宏。重新开启之前，键盘将显示其自身保存的效果。",
+      "close": "关闭窗口时",
+      "closeMenubar": "在菜单栏中保持运行",
+      "closeQuit": "退出应用",
+      "closeDescription": "在菜单栏中，关闭窗口后实时灯光、音乐和宏仍会继续工作。"
     },
     "keyboard": {
-      "title": "Keyboard",
-      "description": "Saved on the keyboard itself.",
-      "cableOnly": "Connect the USB cable to change these. Over the 2.4 GHz dongle, saving settings is unsafe, so the app doesn't allow it.",
-      "notConnected": "Connect the keyboard with the USB cable to change these.",
-      "reading": "Reading the keyboard's settings…",
-      "saving": "Saving to the keyboard…",
-      "unexpected": "The keyboard reported a value the app doesn't recognise, so this setting is read-only."
+      "title": "键盘",
+      "description": "保存在键盘本身。",
+      "cableOnly": "请连接 USB 线以更改这些设置。通过 2.4 GHz 接收器保存设置并不安全，因此应用不允许这样做。",
+      "notConnected": "请使用 USB 线连接键盘以更改这些设置。",
+      "reading": "正在读取键盘设置…",
+      "saving": "正在保存到键盘…",
+      "unexpected": "键盘报告了应用无法识别的值，因此此设置为只读。"
     },
     "sleep": {
-      "title": "Sleep",
-      "description": "Turn the backlight off after the keyboard has been idle for a while.",
-      "after": "Sleep after · {{duration}}",
-      "seconds_one": "{{count}} second",
-      "seconds_other": "{{count}} seconds",
-      "minutes_one": "{{count}} minute",
-      "minutes_other": "{{count}} minutes"
+      "title": "休眠",
+      "description": "键盘闲置一段时间后关闭背光。",
+      "after": "休眠时间 · {{duration}}",
+      "seconds_one": "{{count}} 秒",
+      "seconds_other": "{{count}} 秒",
+      "minutes_one": "{{count}} 分钟",
+      "minutes_other": "{{count}} 分钟"
     },
     "debounce": {
-      "description": "How long the keyboard waits for a key's contacts to settle. Raise it if a key types twice; lower it for slightly faster input.",
-      "value": "Debounce · {{value}} ms",
-      "default": "Default ({{value}} ms)",
-      "notVerified": "Not available yet: where this keyboard stores debounce hasn't been confirmed, so the app won't write it."
+      "description": "键盘等待按键触点稳定的时长。如果按一次键出现两次输入，请调高；调低则输入响应略快。",
+      "value": "消抖 · {{value}} ms",
+      "default": "默认（{{value}} ms）",
+      "notVerified": "暂不可用：尚未确认此键盘将消抖设置存储在何处，因此应用不会写入。"
     }
   },
 
   "menu": {
-    "connectedWired": "AULA F75 · USB cable",
-    "connectedWireless": "AULA F75 · 2.4 GHz dongle",
-    "disconnected": "AULA F75 · Not connected",
-    "pause": "Pause lighting and macros",
-    "resume": "Resume lighting and macros",
-    "lighting": "Lighting",
-    "open": "Open AULA F75 Mac Driver",
-    "quit": "Quit"
+    "connectedWired": "AULA F75 · USB 线",
+    "connectedWireless": "AULA F75 · 2.4 GHz 接收器",
+    "disconnected": "AULA F75 · 未连接",
+    "pause": "暂停灯光和宏",
+    "resume": "继续灯光和宏",
+    "lighting": "灯光",
+    "open": "打开 AULA F75 Mac Driver",
+    "quit": "退出"
   }
 }

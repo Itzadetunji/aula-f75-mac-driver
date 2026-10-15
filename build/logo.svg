@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#424348" />
+      <stop offset="1" stop-color="#1C1C1E" />
+    </linearGradient>
+  </defs>
+
+  <!-- Tile -->
+  <rect x="100" y="100" width="824" height="824" rx="184" fill="url(#tile)" />
+
+  <!-- Keyboard outline -->
+  <rect x="222" y="272" width="580" height="270" rx="56" fill="none" stroke="#FAFAFA" stroke-width="30" />
+
+  <!-- Keys -->
+  <g fill="#FAFAFA">
+    <rect x="282.0" y="322" width="48.6" height="40" rx="10" />
+    <rect x="350.6" y="322" width="48.6" height="40" rx="10" />
+    <rect x="419.1" y="322" width="48.6" height="40" rx="10" />
+    <rect x="487.7" y="322" width="48.6" height="40" rx="10" />
+    <rect x="556.3" y="322" width="48.6" height="40" rx="10" />
+    <rect x="624.9" y="322" width="48.6" height="40" rx="10" />
+    <rect x="693.4" y="322" width="48.6" height="40" rx="10" />
+    <rect x="282.0" y="382" width="48.6" height="40" rx="10" />
+    <rect x="350.6" y="382" width="48.6" height="40" rx="10" />
+    <rect x="419.1" y="382" width="48.6" height="40" rx="10" />
+    <rect x="487.7" y="382" width="48.6" height="40" rx="10" />
+    <rect x="556.3" y="382" width="48.6" height="40" rx="10" />
+    <rect x="624.9" y="382" width="48.6" height="40" rx="10" />
+    <rect x="693.4" y="382" width="48.6" height="40" rx="10" />
+  </g>
+
+  <!-- Spacebar (light bar) -->
+  <rect x="382" y="442" width="260" height="44" rx="22" fill="#3ECF8E" />
+
+  <!-- Wordmark -->
+  <text
+    x="512"
+    y="738"
+    text-anchor="middle"
+    font-family="SF Pro Display, -apple-system, Helvetica Neue, Arial, sans-serif"
+    font-size="108"
+    font-weight="700"
+    letter-spacing="8"
+    fill="#FAFAFA"
+  >AULA <tspan fill="#3ECF8E">F75</tspan></text>
+</svg>
