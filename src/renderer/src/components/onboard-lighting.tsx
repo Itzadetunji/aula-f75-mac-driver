@@ -1,7 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { Loader2, RefreshCw, Save, Undo2 } from 'lucide-react'
-import { hsvToRgb } from '@shared/effects'
-import { F75_KEYS } from '@shared/layout'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Loader2, MousePointerClick, RefreshCw, Save, Undo2 } from 'lucide-react'
 import {
   decodeOnboard,
   diffOnboard,
@@ -14,9 +12,12 @@ import {
   SELF_DEFINE_EFFECT,
   type EffectSettings,
   type OnboardConfig,
+  type OnboardEffect,
 } from '@shared/onboard'
-import type { RGB } from '@shared/types'
 import { KeyboardView } from '@/components/keyboard-view'
+import { useAnimationTime } from '@/hooks/use-f75'
+import { useLayout } from '@/hooks/use-layout'
+import { keyIdFromCode, renderOnboardDemo, type Press } from '@/lib/onboard-demo'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,19 +25,45 @@ import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { cn, rgbToHex } from '@/lib/utils'
 
-function previewFrame(effectId: number, s: EffectSettings | undefined, hasColor: boolean): RGB[] {
-  if (!s || effectId === OFF_EFFECT || effectId === SELF_DEFINE_EFFECT || s.brightness === 0) return []
-  const v = 0.2 + 0.8 * (s.brightness / MAX_BRIGHTNESS)
-  const frame: RGB[] = []
-  for (const key of F75_KEYS) {
-    if (!hasColor || s.color === MULTICOLOR) {
-      frame[key.led] = hsvToRgb((Math.floor(key.led / 6) / 15) * 300, 1, v)
-    } else {
-      const [r, g, b] = ONBOARD_COLORS[s.color]?.rgb ?? [255, 255, 255]
-      frame[key.led] = [Math.round(r * v), Math.round(g * v), Math.round(b * v)]
+const now = () => performance.now() / 1000
+
+/** Animated demo of the selected effect; reactive effects respond to clicks and real key presses. */
+function useEffectDemo(effect: OnboardEffect | undefined, settings: EffectSettings | undefined) {
+  useAnimationTime()
+  const { keys } = useLayout()
+  const presses = useRef<Press[]>([])
+  const reactive = !!effect?.reactive
+
+  const press = useCallback((led: number) => {
+    const t = now()
+    presses.current = [...presses.current.filter((p) => t - p.at < 4), { led, at: t }]
+  }, [])
+
+  useEffect(() => {
+    if (!reactive) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.repeat || e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      const id = keyIdFromCode(e.code)
+      const key = id && keys.find((k) => k.id === id)
+      if (key) press(key.led)
     }
-  }
-  return frame
+    // Plays by itself until the user starts pressing keys.
+    const auto = window.setInterval(() => {
+      const last = presses.current.at(-1)
+      if (!last || now() - last.at > 2.5) press(keys[Math.floor(Math.random() * keys.length)].led)
+    }, 900)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.clearInterval(auto)
+    }
+  }, [reactive, keys, press])
+
+  const frame =
+    effect && effect.id !== OFF_EFFECT && effect.id !== SELF_DEFINE_EFFECT
+      ? renderOnboardDemo(effect.id, settings, effect.hasColor, now(), presses.current)
+      : []
+  return { frame, press, reactive }
 }
 
 export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs: ReactNode }) {
@@ -86,6 +113,8 @@ export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs:
   const settings = draft ? draft.settings[draft.effect] : undefined
   const editable = !!effect && effect.id !== OFF_EFFECT && effect.id !== SELF_DEFINE_EFFECT && !!settings
 
+  const demo = useEffectDemo(effect, settings)
+
   const patchSettings = (patch: Partial<EffectSettings>) =>
     setDraft((d) => d && { ...d, settings: { ...d.settings, [d.effect]: { ...d.settings[d.effect], ...patch } } })
 
@@ -116,10 +145,13 @@ export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs:
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-3">
-        <KeyboardView colors={previewFrame(draft.effect, settings, !!effect?.hasColor)} />
+        <KeyboardView colors={demo.frame} onKeyDown={demo.reactive ? (key) => demo.press(key.led) : undefined} />
         {tabs}
         <p className="text-muted-foreground text-xs">
-          Rough preview. The keyboard runs this effect itself, even when it isn't connected to this Mac.
+          {demo.reactive
+            ? 'Demo: click keys or type to try it out. '
+            : 'Demo of the effect, roughly how the keyboard shows it. '}
+          The keyboard runs this itself, even when it isn't connected to this Mac.
         </p>
       </div>
 
@@ -177,6 +209,17 @@ export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs:
             <CardDescription>The keyboard remembers these separately for every effect.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
+            {effect && (
+              <div className="bg-muted/50 flex flex-col gap-1.5 rounded-lg border p-3 text-sm">
+                <p>{effect.description}</p>
+                {effect.reactive && (
+                  <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+                    <MousePointerClick className="size-3.5" /> Reacts to typing. Click keys above or type to try it.
+                  </p>
+                )}
+              </div>
+            )}
+
             {editable && settings ? (
               <>
                 <div className="flex flex-col gap-2">
