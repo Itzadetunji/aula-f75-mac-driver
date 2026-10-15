@@ -7,6 +7,8 @@ enum TextTyper {
     private static let queue = DispatchQueue(label: "f75.text-typer")
     private static let returnKey: CGKeyCode = 36
     private static let tabKey: CGKeyCode = 48
+    /// macOS accepts at most 20 UTF-16 units per keyboard event.
+    private static let chunkSize = 20
 
     static func type(_ text: String, pressEnter: Bool) {
         queue.async {
@@ -14,30 +16,40 @@ enum TextTyper {
             let modifiers: CGEventFlags = [.maskCommand, .maskAlternate, .maskControl, .maskShift]
             let deadline = Date().addingTimeInterval(2)
             while !CGEventSource.flagsState(.combinedSessionState).intersection(modifiers).isEmpty, Date() < deadline {
-                usleep(10_000)
+                usleep(2_000)
             }
 
             let source = CGEventSource(stateID: .hidSystemState)
-            for character in text {
-                if character.isNewline {
-                    tap(returnKey, source)
-                } else if character == "\t" {
-                    tap(tabKey, source)
-                } else {
-                    typeCharacter(character, source)
-                }
-                usleep(3_000)
+            var pending: [UInt16] = []
+
+            func flush() {
+                guard !pending.isEmpty else { return }
+                typeUnits(pending, source)
+                pending.removeAll(keepingCapacity: true)
+                usleep(1_000)
             }
+
+            for character in text {
+                if character.isNewline || character == "\t" {
+                    flush()
+                    tap(character == "\t" ? tabKey : returnKey, source)
+                    continue
+                }
+                let units = Array(String(character).utf16)
+                // Keep characters (e.g. emoji, which are several UTF-16 units) whole within one event.
+                if pending.count + units.count > chunkSize { flush() }
+                pending += units
+            }
+            flush()
             if pressEnter { tap(returnKey, source) }
         }
     }
 
-    private static func typeCharacter(_ character: Character, _ source: CGEventSource?) {
-        let utf16 = Array(String(character).utf16)
+    private static func typeUnits(_ units: [UInt16], _ source: CGEventSource?) {
         for down in [true, false] {
             guard let event = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: down) else { continue }
             event.flags = []
-            event.keyboardSetUnicodeString(stringLength: utf16.count, unicodeString: utf16)
+            event.keyboardSetUnicodeString(stringLength: units.count, unicodeString: units)
             event.post(tap: .cghidEventTap)
         }
     }
@@ -48,5 +60,6 @@ enum TextTyper {
             event?.flags = []
             event?.post(tap: .cghidEventTap)
         }
+        usleep(1_000)
     }
 }
