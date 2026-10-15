@@ -4,26 +4,40 @@ import { dirname, join } from 'node:path'
 import { HelperClient } from './helper'
 import { isAnimated, renderFrame } from '@shared/effects'
 import { LED_SLOTS } from '@shared/layout'
-import { DEFAULT_LIGHTING, type DeviceInfo, type DeviceStatus, type LightingState, type RGB } from '@shared/types'
+import {
+  DEFAULT_LIGHTING,
+  DEFAULT_PREFERENCES,
+  type DeviceInfo,
+  type DeviceStatus,
+  type LightingState,
+  type Preferences,
+  type RGB,
+} from '@shared/types'
 
 const helperPath = app.isPackaged
   ? join(process.resourcesPath, 'f75-helper')
   : join(app.getAppPath(), 'native/f75-helper/.build/release/f75-helper')
 
-const settingsPath = join(app.getPath('userData'), 'lighting.json')
+const lightingPath = join(app.getPath('userData'), 'lighting.json')
+const preferencesPath = join(app.getPath('userData'), 'preferences.json')
 
-function loadLighting(): LightingState {
+function readJson<T extends object>(path: string, defaults: T): T {
   try {
-    return { ...DEFAULT_LIGHTING, ...JSON.parse(readFileSync(settingsPath, 'utf8')) }
+    return { ...defaults, ...JSON.parse(readFileSync(path, 'utf8')) }
   } catch {
-    return { ...DEFAULT_LIGHTING }
+    return { ...defaults }
   }
 }
 
-function saveLighting(state: LightingState) {
-  mkdirSync(dirname(settingsPath), { recursive: true })
-  writeFileSync(settingsPath, JSON.stringify(state, null, 2))
+function writeJson(path: string, value: unknown) {
+  mkdirSync(dirname(path), { recursive: true })
+  writeFileSync(path, JSON.stringify(value, null, 2))
 }
+
+const loadLighting = () => readJson(lightingPath, DEFAULT_LIGHTING)
+const saveLighting = (state: LightingState) => writeJson(lightingPath, state)
+
+let preferences: Preferences = readJson(preferencesPath, DEFAULT_PREFERENCES)
 
 const helper = new HelperClient(helperPath)
 let window: BrowserWindow | null = null
@@ -128,6 +142,12 @@ ipcMain.handle('f75:setLighting', (_e, next: LightingState) => {
 ipcMain.handle('f75:identifyLed', (_e, led: number | null) => {
   identifyingLed = led
   applyLighting()
+})
+ipcMain.handle('f75:getPreferences', () => preferences)
+ipcMain.handle('f75:setPreferences', (_e, patch: Partial<Preferences>) => {
+  preferences = { ...preferences, ...patch }
+  writeJson(preferencesPath, preferences)
+  return preferences
 })
 ipcMain.handle('f75:rawRead', async (_e, args: number[]) => {
   const r = await helper.call<{ raw: string }>('read', { args })

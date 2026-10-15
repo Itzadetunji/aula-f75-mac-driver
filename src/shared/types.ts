@@ -1,4 +1,16 @@
+import { DEFAULT_RIGHT_COLUMN, type RightColumn } from './layout'
+
 export type RGB = [number, number, number]
+
+export interface Preferences {
+  onboarded: boolean
+  rightColumn: RightColumn
+}
+
+export const DEFAULT_PREFERENCES: Preferences = {
+  onboarded: false,
+  rightColumn: DEFAULT_RIGHT_COLUMN,
+}
 
 export type EffectId = 'hardware' | 'off' | 'static' | 'breathing' | 'spectrum' | 'wave' | 'custom'
 
@@ -40,6 +52,8 @@ export interface F75Api {
   identifyLed(led: number | null): Promise<void>
   /** Read-only protocol probe: sends a 0x82 read request with the given argument bytes. */
   rawRead(args: number[]): Promise<string>
+  getPreferences(): Promise<Preferences>
+  setPreferences(patch: Partial<Preferences>): Promise<Preferences>
 }
 
 export const DEFAULT_LIGHTING: LightingState = {

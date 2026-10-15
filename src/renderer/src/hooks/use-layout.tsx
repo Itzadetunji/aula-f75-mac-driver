@@ -1,46 +1,51 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
-import { DEFAULT_RIGHT_COLUMN, rowsWithRightColumn, type KeyDef, type RightColumn } from '@shared/layout'
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { rowsWithRightColumn, type KeyDef, type RightColumn } from '@shared/layout'
+import type { Preferences } from '@shared/types'
 
-const STORAGE_KEY = 'f75.rightColumn'
-
-interface LayoutContextValue {
-  rightColumn: RightColumn
-  setRightColumn: (order: RightColumn) => void
+interface PreferencesContextValue {
+  preferences: Preferences
+  updatePreferences: (patch: Partial<Preferences>) => void
   rows: KeyDef[][]
   keys: KeyDef[]
+  rightColumn: RightColumn
+  setRightColumn: (order: RightColumn) => void
 }
 
-const LayoutContext = createContext<LayoutContextValue | null>(null)
+const PreferencesContext = createContext<PreferencesContextValue | null>(null)
 
-function loadRightColumn(): RightColumn {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null')
-    if (Array.isArray(saved) && saved.length === 4) return saved as RightColumn
-  } catch {}
-  return DEFAULT_RIGHT_COLUMN
-}
+/** Loads preferences from disk (via the main process) before rendering children. */
+export function PreferencesProvider({ children }: { children: ReactNode }) {
+  const [preferences, setPreferences] = useState<Preferences | null>(null)
 
-export function LayoutProvider({ children }: { children: ReactNode }) {
-  const [rightColumn, setState] = useState<RightColumn>(loadRightColumn)
+  useEffect(() => {
+    void window.f75.getPreferences().then(setPreferences)
+  }, [])
 
   const value = useMemo(() => {
-    const rows = rowsWithRightColumn(rightColumn)
+    if (!preferences) return null
+    const updatePreferences = (patch: Partial<Preferences>) => {
+      setPreferences((prev) => (prev ? { ...prev, ...patch } : prev))
+      void window.f75.setPreferences(patch)
+    }
+    const rows = rowsWithRightColumn(preferences.rightColumn)
     return {
-      rightColumn,
-      setRightColumn: (order: RightColumn) => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(order))
-        setState(order)
-      },
+      preferences,
+      updatePreferences,
       rows,
       keys: rows.flat(),
+      rightColumn: preferences.rightColumn,
+      setRightColumn: (rightColumn: RightColumn) => updatePreferences({ rightColumn }),
     }
-  }, [rightColumn])
+  }, [preferences])
 
-  return <LayoutContext.Provider value={value}>{children}</LayoutContext.Provider>
+  if (!value) return null
+  return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>
 }
 
 export function useLayout() {
-  const ctx = useContext(LayoutContext)
-  if (!ctx) throw new Error('useLayout must be used inside LayoutProvider')
+  const ctx = useContext(PreferencesContext)
+  if (!ctx) throw new Error('useLayout must be used inside PreferencesProvider')
   return ctx
 }
+
+export const usePreferences = useLayout

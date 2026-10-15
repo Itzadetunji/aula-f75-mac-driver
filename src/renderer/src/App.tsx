@@ -6,7 +6,9 @@ import { ProtocolLabPage } from '@/components/protocol-lab-page'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Onboarding } from '@/components/onboarding'
 import { useDeviceStatus } from '@/hooks/use-f75'
+import { usePreferences } from '@/hooks/use-layout'
 
 function StatusBadge({ status }: { status: DeviceStatus | null }) {
   if (!status?.helperRunning) return <Badge variant="destructive">Helper offline</Badge>
@@ -22,14 +24,17 @@ function StatusBadge({ status }: { status: DeviceStatus | null }) {
 
 export function App() {
   const status = useDeviceStatus()
+  const { preferences, updatePreferences } = usePreferences()
   const connected = !!status?.connected
+
+  if (!preferences.onboarded) return <Onboarding onDone={() => updatePreferences({ onboarded: true })} />
 
   return (
     <Tabs defaultValue="lighting" className="h-screen gap-0">
       <header className="drag-region flex h-14 shrink-0 items-center justify-between border-b pr-4 pl-24">
         <div className="flex items-center gap-2 font-semibold">
           <Keyboard className="size-5" />
-          F75 Studio
+          AULA F75 Mac Driver
         </div>
         <TabsList>
           <TabsTrigger value="lighting">

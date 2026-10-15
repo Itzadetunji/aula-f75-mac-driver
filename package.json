@@ -13,7 +13,7 @@
   },
   "build": {
     "appId": "dev.local.f75studio",
-    "productName": "F75 Studio",
+    "productName": "AULA F75 Mac Driver",
     "files": [
       "out/**"
     ],

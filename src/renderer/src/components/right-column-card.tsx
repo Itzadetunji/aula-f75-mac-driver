@@ -1,11 +1,12 @@
 import { RIGHT_COLUMN_KEYS, RIGHT_COLUMN_PRESETS, type RightColumn, type RightColumnKey } from '@shared/layout'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { useLayout } from '@/hooks/use-layout'
 import { cn } from '@/lib/utils'
 
 export function RightColumnCard() {
-  const { rightColumn, setRightColumn } = useLayout()
+  const { rightColumn, setRightColumn, updatePreferences } = useLayout()
 
   const setSlot = (slot: number, id: RightColumnKey) => {
     const next = [...rightColumn] as RightColumn
@@ -56,6 +57,9 @@ export function RightColumnCard() {
             </div>
           ))}
         </div>
+        <Button variant="ghost" size="sm" className="self-start" onClick={() => updatePreferences({ onboarded: false })}>
+          Run setup again
+        </Button>
       </CardContent>
     </Card>
   )

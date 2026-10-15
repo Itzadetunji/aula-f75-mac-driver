@@ -138,7 +138,7 @@ export const RIGHT_COLUMN_PRESETS: { name: string; order: RightColumn }[] = [
 
 export const DEFAULT_RIGHT_COLUMN: RightColumn = RIGHT_COLUMN_PRESETS[0].order
 
-const RIGHT_COLUMN_LEDS = [1, 2, 3, 4].map((row) => 15 * 6 + row)
+export const RIGHT_COLUMN_LEDS = [1, 2, 3, 4].map((row) => 15 * 6 + row)
 
 /** Relabels the right-hand column; LED positions are fixed, only the legends differ between variants. */
 export function rowsWithRightColumn(order: RightColumn): KeyDef[][] {

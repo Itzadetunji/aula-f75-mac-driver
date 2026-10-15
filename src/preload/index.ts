@@ -12,6 +12,8 @@ const api: F75Api = {
   setLighting: (state: LightingState) => ipcRenderer.invoke('f75:setLighting', state),
   identifyLed: (led) => ipcRenderer.invoke('f75:identifyLed', led),
   rawRead: (args) => ipcRenderer.invoke('f75:rawRead', args),
+  getPreferences: () => ipcRenderer.invoke('f75:getPreferences'),
+  setPreferences: (patch) => ipcRenderer.invoke('f75:setPreferences', patch),
 }
 
 contextBridge.exposeInMainWorld('f75', api)
