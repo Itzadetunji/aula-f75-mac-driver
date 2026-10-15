@@ -256,7 +256,8 @@ function updateMenu() {
   ]
   void helper
     .call('setMenu', {
-      icon: preferences.running ? 'keyboard' : 'keyboard.badge.ellipsis',
+      title: 'AULA',
+      dimmed: !preferences.running,
       tooltip: t('app.title'),
       items,
     })
@@ -376,6 +377,9 @@ function showWindow() {
 }
 
 app.whenReady().then(() => {
+  // Packaged builds get the icon from the bundle; in dev the Dock would show Electron's.
+  const devIcon = join(app.getAppPath(), 'build/icon.png')
+  if (!app.isPackaged && existsSync(devIcon)) app.dock?.setIcon(devIcon)
   startHelper()
   createWindow()
   registerMacros()

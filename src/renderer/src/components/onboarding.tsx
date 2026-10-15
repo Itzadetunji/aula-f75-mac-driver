@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft, ArrowRight, Keyboard, Paintbrush, Sparkles, Usb } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Paintbrush, Sparkles, Usb } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LED_SLOTS, RIGHT_COLUMN_LEDS, RIGHT_COLUMN_PRESETS } from '@shared/layout'
 import type { RGB } from '@shared/types'
@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useLayout } from '@/hooks/use-layout'
 import { cn } from '@/lib/utils'
+import logo from '../../../../build/logo.svg'
 
 /** Text lives under `onboarding.features` in the locale files. */
 const FEATURES = [
@@ -28,9 +29,7 @@ function Welcome() {
   const { t } = useTranslation()
   return (
     <div className="flex flex-col items-center gap-8 text-center">
-      <div className="bg-primary/10 flex size-16 items-center justify-center rounded-2xl border">
-        <Keyboard className="size-8" />
-      </div>
+      <img src={logo} alt="" className="size-32" />
       <div className="flex flex-col gap-3">
         <h1 className="text-3xl font-semibold tracking-tight">{t('app.title')}</h1>
         <p className="text-muted-foreground mx-auto max-w-md">{t('onboarding.welcome.description')}</p>

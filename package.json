@@ -9,8 +9,9 @@
     "dev": "bun run build:helper && electron-vite dev",
     "build": "bun run build:helper && electron-vite build",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
-    "package": "bun run build && electron-builder --mac --dir",
-    "dist": "bun run build && electron-builder --mac dmg"
+    "icon": "electron scripts/make-icon.mjs",
+    "package": "bun run icon && bun run build && electron-builder --mac --dir",
+    "dist": "bun run icon && bun run build && electron-builder --mac dmg"
   },
   "build": {
     "appId": "dev.local.f75studio",
@@ -24,8 +25,12 @@
         "to": "f75-helper"
       }
     ],
+    "directories": {
+      "buildResources": "build"
+    },
     "mac": {
       "target": "dir",
+      "icon": "build/icon.icns",
       "category": "public.app-category.utilities"
     }
   },

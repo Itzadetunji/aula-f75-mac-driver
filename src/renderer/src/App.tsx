@@ -1,4 +1,4 @@
-import { Command, Keyboard, Lightbulb, Microscope, Pause, Play, ScanSearch, Settings } from 'lucide-react'
+import { Command, Lightbulb, Microscope, Pause, Play, ScanSearch, Settings } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DeviceStatus } from '@shared/types'
@@ -16,6 +16,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { useDeviceStatus } from '@/hooks/use-f75'
 import { usePreferences } from '@/hooks/use-layout'
 import { modelName } from '@/lib/utils'
+import logo from '../../../build/logo.svg'
 
 function StatusBadge({ status }: { status: DeviceStatus | null }) {
   const { t } = useTranslation()
@@ -55,7 +56,7 @@ export function App() {
     <Tabs defaultValue="lighting" className="h-screen gap-0">
       <header className="drag-region flex h-14 shrink-0 items-center justify-between border-b pr-4 pl-24">
         <div className="flex items-center gap-2 font-semibold">
-          <Keyboard className="size-5" />
+          <img src={logo} alt="" className="size-8" />
           {t('app.title')}
         </div>
         <TabsList>

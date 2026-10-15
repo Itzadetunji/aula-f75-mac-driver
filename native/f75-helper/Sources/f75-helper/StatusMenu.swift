@@ -4,6 +4,7 @@ import AppKit
 /// (`setMenu`), so labels stay translated on the app side; clicks come back as
 /// `{"event":"menu","id":…}`.
 ///
+/// The bar shows `title` as text when given, otherwise the SF Symbol `icon`.
 /// Item kinds: `item` (default), `header`, `separator`. Items may carry an SF
 /// Symbol name, a checkmark and an enabled flag.
 final class StatusMenu: NSObject {
@@ -13,13 +14,25 @@ final class StatusMenu: NSObject {
     /// Call on the main thread.
     func update(_ spec: [String: Any]) {
         if item == nil {
-            item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+            item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         }
-        let icon = NSImage(systemSymbolName: spec["icon"] as? String ?? "keyboard", accessibilityDescription: "AULA F75")
-            ?? NSImage(systemSymbolName: "keyboard", accessibilityDescription: "AULA F75")
-        icon?.isTemplate = true
-        item?.button?.image = icon
-        item?.button?.toolTip = spec["tooltip"] as? String
+        if let button = item?.button {
+            if let title = spec["title"] as? String {
+                button.image = nil
+                button.attributedTitle = NSAttributedString(
+                    string: title,
+                    attributes: [.font: NSFont.systemFont(ofSize: NSFont.systemFontSize, weight: .semibold)])
+            } else {
+                let icon = NSImage(systemSymbolName: spec["icon"] as? String ?? "keyboard", accessibilityDescription: "AULA F75")
+                    ?? NSImage(systemSymbolName: "keyboard", accessibilityDescription: "AULA F75")
+                icon?.isTemplate = true
+                button.title = ""
+                button.image = icon
+            }
+            // Greyed out while the app is paused.
+            button.appearsDisabled = spec["dimmed"] as? Bool ?? false
+            button.toolTip = spec["tooltip"] as? String
+        }
 
         let menu = NSMenu()
         menu.autoenablesItems = false
