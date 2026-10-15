@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { LED_SLOTS } from '@shared/layout'
+import { LED_SLOTS, RIGHT_COLUMN_LEDS } from '@shared/layout'
 import type { RGB } from '@shared/types'
 import { KeyboardView } from '@/components/keyboard-view'
 import { RightColumnCard } from '@/components/right-column-card'
 import { useLayout } from '@/hooks/use-layout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 type Mode = 'keys' | 'raw'
 
-export function LedCheckPage({ connected }: { connected: boolean }) {
+function LedMapCheck({ connected }: { connected: boolean }) {
   const { keys: F75_KEYS } = useLayout()
   const [mode, setMode] = useState<Mode>('keys')
   const [index, setIndex] = useState(0)
@@ -88,7 +88,35 @@ export function LedCheckPage({ connected }: { connected: boolean }) {
           </Button>
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+function RightSideKeys() {
+  const colors: RGB[] = Array.from({ length: LED_SLOTS }, () => [40, 40, 48])
+  for (const led of RIGHT_COLUMN_LEDS) colors[led] = [0, 200, 255]
+
+  return (
+    <div className="flex flex-col items-center gap-6">
+      <KeyboardView colors={colors} />
       <RightColumnCard />
     </div>
+  )
+}
+
+export function LayoutPage({ connected }: { connected: boolean }) {
+  return (
+    <Tabs defaultValue="led-map" className="items-center gap-6">
+      <TabsList>
+        <TabsTrigger value="led-map">LED map check</TabsTrigger>
+        <TabsTrigger value="right-side">Right-side keys</TabsTrigger>
+      </TabsList>
+      <TabsContent value="led-map" className="w-full">
+        <LedMapCheck connected={connected} />
+      </TabsContent>
+      <TabsContent value="right-side" className="w-full">
+        <RightSideKeys />
+      </TabsContent>
+    </Tabs>
   )
 }

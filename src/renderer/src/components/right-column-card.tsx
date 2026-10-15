@@ -2,6 +2,7 @@ import { RIGHT_COLUMN_KEYS, RIGHT_COLUMN_PRESETS, type RightColumn, type RightCo
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useLayout } from '@/hooks/use-layout'
 import { cn } from '@/lib/utils'
 
@@ -19,8 +20,7 @@ export function RightColumnCard() {
       <CardHeader>
         <CardTitle>Right-side keys</CardTitle>
         <CardDescription>
-          F75 variants label the column above the arrow keys differently. Pick the order printed on your keycaps, top to
-          bottom.
+          F75 variants label the highlighted column differently. Pick the order printed on your keycaps, top to bottom.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -43,17 +43,18 @@ export function RightColumnCard() {
           {rightColumn.map((id, slot) => (
             <div key={slot} className="flex flex-col gap-1.5">
               <Label className="text-muted-foreground text-xs">Row {slot + 1}</Label>
-              <select
-                value={id}
-                onChange={(e) => setSlot(slot, e.target.value as RightColumnKey)}
-                className="border-input dark:bg-input/30 h-9 rounded-md border bg-transparent px-2 text-sm"
-              >
-                {Object.entries(RIGHT_COLUMN_KEYS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+              <Select value={id} onValueChange={(v) => setSlot(slot, v as RightColumnKey)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(RIGHT_COLUMN_KEYS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           ))}
         </div>

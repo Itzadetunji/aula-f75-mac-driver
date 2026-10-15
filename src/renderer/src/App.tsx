@@ -1,6 +1,6 @@
 import { Keyboard, Lightbulb, Microscope, ScanSearch } from 'lucide-react'
 import type { DeviceStatus } from '@shared/types'
-import { LedCheckPage } from '@/components/led-check-page'
+import { LayoutPage } from '@/components/led-check-page'
 import { LightingPage } from '@/components/lighting-page'
 import { ProtocolLabPage } from '@/components/protocol-lab-page'
 import { Badge } from '@/components/ui/badge'
@@ -63,7 +63,7 @@ export function App() {
           <LightingPage connected={connected} />
         </TabsContent>
         <TabsContent value="led-check">
-          <LedCheckPage connected={connected} />
+          <LayoutPage connected={connected} />
         </TabsContent>
         <TabsContent value="lab">
           <ProtocolLabPage connected={connected} />
