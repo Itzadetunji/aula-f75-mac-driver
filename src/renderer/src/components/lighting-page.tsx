@@ -1,7 +1,7 @@
-import { useMemo, useState, type ComponentType } from 'react'
+import { useEffect, useMemo, useRef, useState, type ComponentType, type MouseEvent, type ReactNode } from 'react'
 import { Cpu, Paintbrush, Power, Sparkles, Sun, Waves, Wind } from 'lucide-react'
 import { renderFrame } from '@shared/effects'
-import { F75_KEYS } from '@shared/layout'
+import { F75_KEYS, type KeyDef } from '@shared/layout'
 import type { EffectId, RGB } from '@shared/types'
 import { KeyboardView } from '@/components/keyboard-view'
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,14 @@ const SWATCHES: RGB[] = [
   [255, 0, 170],
 ]
 
+function Kbd({ children }: { children: ReactNode }) {
+  return (
+    <kbd className="bg-muted text-foreground mx-0.5 rounded border px-1.5 py-0.5 font-sans text-[11px] font-medium">
+      {children}
+    </kbd>
+  )
+}
+
 export function LightingPage({ connected }: { connected: boolean }) {
   const [lighting, update] = useLighting()
   const t = useAnimationTime()
@@ -43,28 +51,122 @@ export function LightingPage({ connected }: { connected: boolean }) {
     return renderFrame({ ...lighting, brightness: Math.max(lighting.brightness, 35) }, t)
   }, [lighting, t])
 
-  const paint = (led: number) => update({ perKey: { ...lighting.perKey, [led]: brush } })
   const isCustom = lighting.effect === 'custom'
   const usesColor = lighting.effect === 'static' || lighting.effect === 'breathing'
   const usesSpeed = lighting.effect === 'breathing' || lighting.effect === 'spectrum' || lighting.effect === 'wave'
+
+  const [selected, setSelected] = useState<Set<number>>(new Set())
+  const dragMode = useRef<'add' | 'remove'>('add')
+
+  const colorSelected = (color: RGB) => {
+    if (selected.size === 0) return
+    const perKey = { ...lighting.perKey }
+    for (const led of selected) perKey[led] = color
+    update({ perKey })
+  }
+
   const activeColor = isCustom ? brush : lighting.color
-  const setActiveColor = (c: RGB) => (isCustom ? setBrush(c) : update({ color: c }))
+  const setActiveColor = (c: RGB) => {
+    if (!isCustom) return update({ color: c })
+    setBrush(c)
+    colorSelected(c)
+  }
+
+  const deselect = (led: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      next.delete(led)
+      return next
+    })
+    update((prev) => {
+      const { [led]: _, ...perKey } = prev.perKey
+      return { perKey }
+    })
+  }
+
+  const onKeyDown = (key: KeyDef, e: MouseEvent) => {
+    if (selected.has(key.led)) {
+      dragMode.current = 'remove'
+      deselect(key.led)
+    } else if (e.metaKey || e.shiftKey) {
+      dragMode.current = 'add'
+      setSelected((prev) => new Set(prev).add(key.led))
+    } else {
+      dragMode.current = 'add'
+      setSelected(new Set([key.led]))
+    }
+  }
+
+  const onKeyEnter = (key: KeyDef) => {
+    if (dragMode.current === 'remove') {
+      if (selected.has(key.led)) deselect(key.led)
+    } else {
+      setSelected((prev) => new Set(prev).add(key.led))
+    }
+  }
+
+  useEffect(() => {
+    if (!isCustom) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement) return
+      if (e.key === 'Escape') setSelected(new Set())
+      if (e.key === 'a' && e.metaKey) {
+        e.preventDefault()
+        setSelected(new Set(F75_KEYS.map((k) => k.led)))
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isCustom])
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-3">
         <KeyboardView
           colors={preview}
-          onKeyDown={isCustom ? (k) => paint(k.led) : undefined}
-          onKeyEnter={isCustom ? (k) => paint(k.led) : undefined}
+          selected={isCustom ? selected : undefined}
+          onKeyDown={isCustom ? onKeyDown : undefined}
+          onKeyEnter={isCustom ? onKeyEnter : undefined}
+          onBackgroundDown={isCustom ? () => setSelected(new Set()) : undefined}
         />
-        <p className="text-muted-foreground text-xs">
-          {isCustom
-            ? 'Click or drag across keys to paint them with the selected colour.'
-            : lighting.effect === 'hardware'
+        {isCustom && (
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground w-28 text-xs tabular-nums">
+              {selected.size === 0 ? 'No keys selected' : `${selected.size} key${selected.size === 1 ? '' : 's'} selected`}
+            </span>
+            <Button variant="outline" size="sm" onClick={() => setSelected(new Set(F75_KEYS.map((k) => k.led)))}>
+              Select all
+            </Button>
+            <Button variant="outline" size="sm" disabled={selected.size === 0} onClick={() => setSelected(new Set())}>
+              Deselect
+            </Button>
+            <Button variant="secondary" size="sm" disabled={selected.size === 0} onClick={() => colorSelected(brush)}>
+              Apply colour
+            </Button>
+            <Button variant="outline" size="sm" disabled={selected.size === 0} onClick={() => colorSelected([0, 0, 0])}>
+              Turn off
+            </Button>
+          </div>
+        )}
+        {isCustom ? (
+          <ul className="text-muted-foreground grid grid-cols-2 gap-x-8 gap-y-1.5 text-xs">
+            <li>Click a key to select it, click it again to deselect</li>
+            <li>
+              Hold <Kbd>⇧ Shift</Kbd> or <Kbd>⌘ Command</Kbd> and click to select multiple keys
+            </li>
+            <li>Drag across keys to select a group</li>
+            <li>
+              <Kbd>⌘ A</Kbd> selects all · <Kbd>Esc</Kbd> or click the board's edge to deselect all
+            </li>
+            <li className="col-span-2">Then pick a colour on the right to light the selected keys</li>
+          </ul>
+        ) : (
+          <p className="text-muted-foreground text-xs">
+            {lighting.effect === 'hardware'
               ? 'Showing nothing here: the keyboard is running its own built-in effect.'
               : 'Live preview of what the keyboard is showing.'}
-        </p>
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-[1.4fr_1fr] gap-6">
@@ -98,7 +200,7 @@ export function LightingPage({ connected }: { connected: boolean }) {
 
         <Card>
           <CardHeader>
-            <CardTitle>{isCustom ? 'Brush' : 'Settings'}</CardTitle>
+            <CardTitle>{isCustom ? 'Key colour' : 'Settings'}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
             {(usesColor || isCustom) && (
@@ -151,7 +253,7 @@ export function LightingPage({ connected }: { connected: boolean }) {
                   Fill all
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => update({ perKey: {} })}>
-                  Clear
+                  Clear all
                 </Button>
               </div>
             )}

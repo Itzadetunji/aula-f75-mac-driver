@@ -20,9 +20,9 @@ export function useLighting() {
   }, [])
 
   // Sliders and colour pickers fire continuously; coalesce writes to the main process.
-  const update = useCallback((patch: Partial<LightingState>) => {
+  const update = useCallback((patch: Partial<LightingState> | ((prev: LightingState) => Partial<LightingState>)) => {
     setLocal((prev) => {
-      const next = { ...prev, ...patch }
+      const next = { ...prev, ...(typeof patch === 'function' ? patch(prev) : patch) }
       pending.current = next
       if (timer.current === null) {
         timer.current = window.setTimeout(() => {
