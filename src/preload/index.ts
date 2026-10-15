@@ -8,6 +8,11 @@ const api: F75Api = {
     ipcRenderer.on('f75:status', listener)
     return () => ipcRenderer.removeListener('f75:status', listener)
   },
+  onAudio: (cb) => {
+    const listener = (_e: unknown, bands: number[]) => cb(bands)
+    ipcRenderer.on('f75:audio', listener)
+    return () => ipcRenderer.removeListener('f75:audio', listener)
+  },
   getLighting: () => ipcRenderer.invoke('f75:getLighting'),
   setLighting: (state: LightingState) => ipcRenderer.invoke('f75:setLighting', state),
   identifyLed: (led) => ipcRenderer.invoke('f75:identifyLed', led),

@@ -47,6 +47,8 @@ let identifyingLed: number | null = null
 let animationTimer: NodeJS.Timeout | null = null
 let frameInFlight = false
 const startedAt = Date.now()
+let audioBands: number[] = []
+let audioRunning = false
 
 let status: DeviceStatus = {
   helperRunning: false,
@@ -94,8 +96,20 @@ function stopAnimation() {
   animationTimer = null
 }
 
+function syncAudio() {
+  const wanted = lighting.effect === 'music' && identifyingLed === null
+  if (wanted === audioRunning) return
+  audioRunning = wanted
+  if (!wanted) {
+    audioBands = []
+    if (status.error?.includes('audio')) publishStatus({ error: null })
+  }
+  void helper.call(wanted ? 'startAudio' : 'stopAudio').catch(() => {})
+}
+
 function applyLighting() {
   stopAnimation()
+  syncAudio()
   if (!status.connected) return
 
   if (identifyingLed !== null) {
@@ -110,9 +124,11 @@ function applyLighting() {
     return
   }
 
-  const tick = () => void sendFrame(renderFrame(lighting, (Date.now() - startedAt) / 1000))
+  const tick = () => void sendFrame(renderFrame(lighting, (Date.now() - startedAt) / 1000, audioBands))
   tick()
-  if (isAnimated(lighting)) animationTimer = setInterval(tick, 40)
+  // Faster than ~21 FPS starves the keyboard's key scanning (dropped/doubled keypresses);
+  // the radio link needs about twice the gap.
+  if (isAnimated(lighting)) animationTimer = setInterval(tick, status.info?.transport === 'wireless' ? 95 : 50)
 }
 
 function startHelper() {
@@ -127,8 +143,17 @@ function startHelper() {
 helper.on('ready', () => void refreshDevice())
 helper.on('connection', () => void refreshDevice())
 helper.on('failed', (err: Error) => publishStatus({ helperRunning: false, error: err.message }))
+helper.on('audio', (msg: { bands: number[] }) => {
+  audioBands = msg.bands
+  window?.webContents.send('f75:audio', audioBands)
+})
+helper.on('audioError', (msg: { message: string }) => {
+  audioRunning = false
+  publishStatus({ error: msg.message })
+})
 helper.on('exit', () => {
   stopAnimation()
+  audioRunning = false
   publishStatus({ helperRunning: false, connected: false })
   setTimeout(startHelper, 2000)
 })

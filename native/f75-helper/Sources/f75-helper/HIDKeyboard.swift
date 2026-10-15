@@ -17,24 +17,40 @@ enum HIDError: Error, CustomStringConvertible {
     }
 }
 
-/// Watches for the wired AULA F75 and exposes its vendor configuration interface
-/// (the HID interface carrying the 520-byte feature report 0x06).
+enum Transport: String {
+    case wired, wireless
+}
+
+/// Watches for the AULA F75 over the USB cable (vendor interface carrying the
+/// 520-byte feature report 0x06) and over its 2.4 GHz dongle (vendor interface
+/// taking 20-byte output reports, live lighting only).
 final class HIDKeyboard {
     static let vendorID = 0x258A
     static let productID = 0x010C
     static let configReportLength = 520
+    static let dongleVendorID = 0x3554
+    static let dongleProductID = 0xFA09
+    static let dongleReportLength = 20
 
     private let manager: IOHIDManager
     private(set) var device: IOHIDDevice?
-    var onChange: ((Bool) -> Void)?
+    private(set) var dongle: IOHIDDevice?
+    var onChange: ((Transport?) -> Void)?
+
+    /// The cable wins when both are present: it supports everything.
+    var transport: Transport? {
+        if device != nil { return .wired }
+        if dongle != nil { return .wireless }
+        return nil
+    }
 
     init() {
         manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
-        let matching: [String: Any] = [
-            kIOHIDVendorIDKey as String: HIDKeyboard.vendorID,
-            kIOHIDProductIDKey as String: HIDKeyboard.productID,
+        let matching: [[String: Any]] = [
+            [kIOHIDVendorIDKey as String: HIDKeyboard.vendorID, kIOHIDProductIDKey as String: HIDKeyboard.productID],
+            [kIOHIDVendorIDKey as String: HIDKeyboard.dongleVendorID, kIOHIDProductIDKey as String: HIDKeyboard.dongleProductID],
         ]
-        IOHIDManagerSetDeviceMatching(manager, matching as CFDictionary)
+        IOHIDManagerSetDeviceMatchingMultiple(manager, matching as CFArray)
 
         let context = Unmanaged.passUnretained(self).toOpaque()
         IOHIDManagerRegisterDeviceMatchingCallback(manager, { ctx, _, _, _ in
@@ -53,28 +69,41 @@ final class HIDKeyboard {
 
     private func refresh() {
         let devices = (IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice>) ?? []
+        func int(_ dev: IOHIDDevice, _ key: String) -> Int { IOHIDDeviceGetProperty(dev, key as CFString) as? Int ?? 0 }
         let config = devices.first { dev in
-            let size = IOHIDDeviceGetProperty(dev, kIOHIDMaxFeatureReportSizeKey as CFString) as? Int ?? 0
-            return size >= HIDKeyboard.configReportLength
+            int(dev, kIOHIDVendorIDKey) == HIDKeyboard.vendorID
+                && int(dev, kIOHIDMaxFeatureReportSizeKey) >= HIDKeyboard.configReportLength
         }
-        let wasConnected = device != nil
+        let radio = devices.first { dev in
+            int(dev, kIOHIDVendorIDKey) == HIDKeyboard.dongleVendorID
+                && int(dev, kIOHIDPrimaryUsagePageKey) >= 0xFF00
+                && int(dev, kIOHIDMaxOutputReportSizeKey) >= HIDKeyboard.dongleReportLength
+        }
+        let before = transport
         if let config, config !== device {
             device = config
             IOHIDDeviceOpen(config, IOOptionBits(kIOHIDOptionsTypeNone))
         } else if config == nil {
             device = nil
         }
-        if wasConnected != (device != nil) {
-            onChange?(device != nil)
+        if let radio, radio !== dongle {
+            dongle = radio
+            IOHIDDeviceOpen(radio, IOOptionBits(kIOHIDOptionsTypeNone))
+        } else if radio == nil {
+            dongle = nil
+        }
+        if before != transport {
+            onChange?(transport)
         }
     }
 
     var info: [String: Any]? {
-        guard let device else { return nil }
-        func prop(_ key: String) -> Any? { IOHIDDeviceGetProperty(device, key as CFString) }
+        guard let active = device ?? dongle else { return nil }
+        func prop(_ key: String) -> Any? { IOHIDDeviceGetProperty(active, key as CFString) }
         return [
-            "vendorId": HIDKeyboard.vendorID,
-            "productId": HIDKeyboard.productID,
+            "vendorId": prop(kIOHIDVendorIDKey) as? Int ?? 0,
+            "productId": prop(kIOHIDProductIDKey) as? Int ?? 0,
+            "transport": transport?.rawValue ?? "",
             "product": prop(kIOHIDProductKey) as? String ?? "",
             "manufacturer": prop(kIOHIDManufacturerKey) as? String ?? "",
             "serial": prop(kIOHIDSerialNumberKey) as? String ?? "",
@@ -89,6 +118,15 @@ final class HIDKeyboard {
         if buf.count < length { buf += [UInt8](repeating: 0, count: length - buf.count) }
         let r = buf.withUnsafeBufferPointer { ptr in
             IOHIDDeviceSetReport(device, kIOHIDReportTypeFeature, CFIndex(buf[0]), ptr.baseAddress!, buf.count)
+        }
+        guard r == kIOReturnSuccess else { throw HIDError.setReportFailed(r) }
+    }
+
+    /// Output report to the 2.4 GHz dongle; `bytes[0]` must be the report ID.
+    func sendDongle(_ bytes: [UInt8]) throws {
+        guard let dongle else { throw HIDError.notConnected }
+        let r = bytes.withUnsafeBufferPointer { ptr in
+            IOHIDDeviceSetReport(dongle, kIOHIDReportTypeOutput, CFIndex(bytes[0]), ptr.baseAddress!, bytes.count)
         }
         guard r == kIOReturnSuccess else { throw HIDError.setReportFailed(r) }
     }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ComponentType, type MouseEvent, type ReactNode } from 'react'
-import { Cpu, HardDrive, MonitorSmartphone, Paintbrush, Power, Sparkles, Sun, Waves, Wind } from 'lucide-react'
+import { Cpu, HardDrive, MonitorSmartphone, Music, Paintbrush, Power, Sparkles, Sun, Waves, Wind } from 'lucide-react'
 import { renderFrame } from '@shared/effects'
 import { F75_KEYS, type KeyDef } from '@shared/layout'
 import { decodeOnboard, ONBOARD_EFFECTS, type OnboardConfig } from '@shared/onboard'
@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useAnimationTime, useLighting } from '@/hooks/use-f75'
+import { useAnimationTime, useAudioBands, useLighting } from '@/hooks/use-f75'
 import { cn, hexToRgb, rgbToHex } from '@/lib/utils'
 
 const EFFECTS: { id: EffectId; label: string; icon: ComponentType<{ className?: string }>; hint: string }[] = [
@@ -20,6 +20,7 @@ const EFFECTS: { id: EffectId; label: string; icon: ComponentType<{ className?: 
   { id: 'breathing', label: 'Breathing', icon: Wind, hint: 'Fades the colour in and out.' },
   { id: 'spectrum', label: 'Spectrum', icon: Sparkles, hint: 'Cycles the whole board through the rainbow.' },
   { id: 'wave', label: 'Wave', icon: Waves, hint: 'Rainbow sweeping across the board.' },
+  { id: 'music', label: 'Music', icon: Music, hint: "A spectrum that dances to whatever your Mac is playing." },
   { id: 'custom', label: 'Per-key', icon: Paintbrush, hint: 'Paint individual keys.' },
   { id: 'off', label: 'Off', icon: Power, hint: 'All LEDs off.' },
 ]
@@ -44,7 +45,7 @@ function Kbd({ children }: { children: ReactNode }) {
   )
 }
 
-export function LightingPage({ connected }: { connected: boolean }) {
+export function LightingPage({ connected, wireless }: { connected: boolean; wireless: boolean }) {
   const tabs = (
     <TabsList>
       <TabsTrigger value="live">
@@ -59,16 +60,16 @@ export function LightingPage({ connected }: { connected: boolean }) {
   return (
     <Tabs defaultValue="live">
       <TabsContent value="live">
-        <LiveLighting connected={connected} tabs={tabs} />
+        <LiveLighting connected={connected} wireless={wireless} tabs={tabs} />
       </TabsContent>
       <TabsContent value="onboard">
-        <OnboardLighting connected={connected} tabs={tabs} />
+        <OnboardLighting connected={connected} wireless={wireless} tabs={tabs} />
       </TabsContent>
     </Tabs>
   )
 }
 
-function LiveLighting({ connected, tabs }: { connected: boolean; tabs: ReactNode }) {
+function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wireless: boolean; tabs: ReactNode }) {
   const [lighting, update] = useLighting()
   const t = useAnimationTime()
   const [brush, setBrush] = useState<RGB>([255, 0, 170])
@@ -76,23 +77,27 @@ function LiveLighting({ connected, tabs }: { connected: boolean; tabs: ReactNode
   const isHardware = lighting.effect === 'hardware'
   const [stored, setStored] = useState<OnboardConfig | null>(null)
   useEffect(() => {
-    if (!connected || !isHardware) return
+    if (!connected || wireless || !isHardware) return
     window.f75
       .readOnboard()
       .then((bytes) => setStored(decodeOnboard(bytes)))
       .catch(() => setStored(null))
-  }, [connected, isHardware])
+  }, [connected, wireless, isHardware])
   const storedEffect = isHardware && stored ? ONBOARD_EFFECTS.find((e) => e.id === stored.effect) : undefined
   const demo = useEffectDemo(storedEffect, stored?.settings[stored.effect])
 
+  const isMusic = lighting.effect === 'music'
+  const bands = useAudioBands(isMusic)
+
   const preview = useMemo(() => {
     if (isHardware) return []
-    return renderFrame({ ...lighting, brightness: Math.max(lighting.brightness, 35) }, t)
+    return renderFrame({ ...lighting, brightness: Math.max(lighting.brightness, 35) }, t, bands.current)
   }, [lighting, t, isHardware])
 
   const isCustom = lighting.effect === 'custom'
   const usesColor = lighting.effect === 'static' || lighting.effect === 'breathing'
-  const usesSpeed = lighting.effect === 'breathing' || lighting.effect === 'spectrum' || lighting.effect === 'wave'
+  const usesSpeed =
+    lighting.effect === 'breathing' || lighting.effect === 'spectrum' || lighting.effect === 'wave' || isMusic
 
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const dragMode = useRef<'add' | 'remove'>('add')
@@ -202,7 +207,9 @@ function LiveLighting({ connected, tabs }: { connected: boolean; tabs: ReactNode
           </ul>
         ) : (
           <p className="text-muted-foreground text-xs">
-            {!isHardware
+            {isMusic
+              ? 'Play something on your Mac and the bars follow the music.'
+              : !isHardware
               ? 'Live preview of what the keyboard is showing.'
               : storedEffect
                 ? `The keyboard is running its saved effect: ${storedEffect.name}.${demo.reactive ? ' Click keys or type to try it.' : ''}`
@@ -218,6 +225,8 @@ function LiveLighting({ connected, tabs }: { connected: boolean; tabs: ReactNode
             <CardDescription>
               Effects other than On-board are driven by this app and stay active while it is running (even with the
               window closed).
+              {wireless &&
+                " Over the 2.4 GHz dongle, colours are rounded a little to fit the radio link, and the keyboard must be on Fixed on (animated effects paint over the app's lighting)."}
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-4 gap-2">
@@ -280,9 +289,19 @@ function LiveLighting({ connected, tabs }: { connected: boolean; tabs: ReactNode
 
             {usesSpeed && (
               <div className="flex flex-col gap-2">
-                <Label>Speed · {lighting.speed}%</Label>
+                <Label>
+                  {isMusic ? 'Sensitivity' : 'Speed'} · {lighting.speed}%
+                </Label>
                 <Slider value={[lighting.speed]} min={0} max={100} step={1} onValueChange={([v]) => update({ speed: v })} />
               </div>
+            )}
+
+            {isMusic && (
+              <p className="text-muted-foreground text-xs">
+                Each column of keys is a bar of the spectrum, from bass on the left to treble on the right. The app
+                listens to your Mac's sound output only (no microphone, nothing is recorded). The first time, macOS asks
+                for Screen &amp; System Audio Recording permission.
+              </p>
             )}
 
             {isCustom && (

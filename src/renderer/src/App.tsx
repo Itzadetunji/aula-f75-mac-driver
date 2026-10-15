@@ -19,7 +19,9 @@ function StatusBadge({ status }: { status: DeviceStatus | null }) {
   return (
     <Badge className="bg-emerald-500/15 text-emerald-300">
       <span className="size-1.5 rounded-full bg-emerald-400" />
-      {model} · fw 0x{(status.info?.firmwareVersion ?? 0).toString(16)}
+      {status.info?.transport === 'wireless'
+        ? `${model} · 2.4 GHz dongle`
+        : `${model} · fw 0x${(status.info?.firmwareVersion ?? 0).toString(16)}`}
     </Badge>
   )
 }
@@ -28,6 +30,7 @@ export function App() {
   const status = useDeviceStatus()
   const { preferences, updatePreferences } = usePreferences()
   const connected = !!status?.connected
+  const wireless = connected && status?.info?.transport === 'wireless'
 
   if (!preferences.onboarded) return <Onboarding onDone={() => updatePreferences({ onboarded: true })} />
 
@@ -66,7 +69,7 @@ export function App() {
             </Card>
           )}
           <TabsContent value="lighting">
-            <LightingPage connected={connected} />
+            <LightingPage connected={connected} wireless={wireless} />
           </TabsContent>
           <TabsContent value="macros">
             <MacrosPage />

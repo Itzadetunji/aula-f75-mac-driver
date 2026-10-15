@@ -18,7 +18,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
 /** Macro id -> reason it couldn't be registered. */
 export type MacroErrors = Record<string, string>
 
-export type EffectId = 'hardware' | 'off' | 'static' | 'breathing' | 'spectrum' | 'wave' | 'custom'
+export type EffectId = 'hardware' | 'off' | 'static' | 'breathing' | 'spectrum' | 'wave' | 'music' | 'custom'
 
 export interface LightingState {
   effect: EffectId
@@ -38,6 +38,8 @@ export interface DeviceInfo {
   manufacturer: string
   serial: string
   firmwareVersion: number
+  /** 'wireless' = through the 2.4 GHz dongle, which only carries live lighting. */
+  transport: 'wired' | 'wireless'
 }
 
 export interface DeviceStatus {
@@ -52,6 +54,8 @@ export interface DeviceStatus {
 export interface F75Api {
   getStatus(): Promise<DeviceStatus>
   onStatus(cb: (status: DeviceStatus) => void): () => void
+  /** Live spectrum of the Mac's audio output (one 0–1 level per keyboard column) while the Music effect runs. */
+  onAudio(cb: (bands: number[]) => void): () => void
   getLighting(): Promise<LightingState>
   setLighting(state: LightingState): Promise<void>
   /** Light a single LED index white (others off) to verify the key map. Pass null to stop. */

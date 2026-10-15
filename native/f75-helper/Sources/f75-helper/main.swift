@@ -19,23 +19,31 @@ func hex(_ bytes: [UInt8]) -> String {
 
 final class Server {
     let keyboard = HIDKeyboard()
-    private var directFrame: [UInt8]?
+    let audio = AudioSpectrum()
+    private var directColors: [[UInt8]]?
     private var lastFrameSent = Date.distantPast
     private var keepalive: Timer?
 
     init() {
-        keyboard.onChange = { [weak self] connected in
-            if !connected { self?.stopDirect() }
-            emit(["event": "connection", "connected": connected, "info": self?.keyboard.info as Any? ?? NSNull()])
+        keyboard.onChange = { [weak self] transport in
+            self?.stopDirect()
+            emit(["event": "connection", "connected": transport != nil, "info": self?.keyboard.info as Any? ?? NSNull()])
+        }
+        audio.onBands = { bands in
+            emit(["event": "audio", "bands": bands.map { (Double($0) * 1000).rounded() / 1000 }])
+        }
+        audio.onError = { message in
+            emit(["event": "audioError", "message": message])
         }
     }
 
     func handle(_ method: String, _ params: [String: Any]) throws -> Any {
         switch method {
         case "status":
-            return ["connected": keyboard.device != nil, "info": keyboard.info as Any? ?? NSNull()]
+            return ["connected": keyboard.transport != nil, "info": keyboard.info as Any? ?? NSNull()]
 
         case "identify":
+            if keyboard.transport == .wireless { return ["modelId": NSNull(), "modelName": "AULA F75", "raw": ""] }
             let response = try read(F75Protocol.infoArgs)
             let model = response.count > F75Protocol.modelIDOffset ? response[F75Protocol.modelIDOffset] : 0
             return [
@@ -50,9 +58,9 @@ final class Server {
 
         case "setDirect":
             guard let colors = params["colors"] as? [[Int]] else { throw RPCError("colors must be [[r,g,b]]") }
-            let frame = F75Protocol.directFrame(colors.map { $0.map { UInt8(clamping: $0) } })
-            try keyboard.sendFeature(frame)
-            directFrame = frame
+            let rgb = colors.map { $0.map { UInt8(clamping: $0) } }
+            try sendColors(rgb)
+            directColors = rgb
             lastFrameSent = Date()
             startKeepalive()
             return true
@@ -62,11 +70,21 @@ final class Server {
             return true
 
         case "readConfig":
+            try requireCable()
             return ["bytes": try readConfig().map(Int.init)]
 
         case "patchConfig":
             guard let changes = params["changes"] as? [[Int]] else { throw RPCError("changes must be [[offset, value]]") }
+            try requireCable()
             return ["bytes": try patchConfig(changes).map(Int.init)]
+
+        case "startAudio":
+            audio.start()
+            return true
+
+        case "stopAudio":
+            audio.stop()
+            return true
 
         case "typeText":
             TextTyper.type(params["text"] as? String ?? "", pressEnter: params["pressEnter"] as? Bool ?? false)
@@ -77,7 +95,27 @@ final class Server {
         }
     }
 
+    private func requireCable() throws {
+        guard keyboard.transport == .wired else {
+            throw RPCError("The 2.4 GHz dongle only carries live lighting. Connect the USB cable to read or save keyboard settings.")
+        }
+    }
+
+    private func sendColors(_ colors: [[UInt8]]) throws {
+        switch keyboard.transport {
+        case .wired: try keyboard.sendFeature(F75Protocol.directFrame(colors))
+        case .wireless:
+            // The vendor driver leaves ~11 ms between the reports of one message.
+            for (n, report) in F75Protocol.dongleReports(colors).enumerated() {
+                if n > 0 { usleep(11_000) }
+                try keyboard.sendDongle(report)
+            }
+        case nil: throw HIDError.notConnected
+        }
+    }
+
     private func read(_ args: [UInt8]) throws -> [UInt8] {
+        try requireCable()
         try keyboard.sendFeature(F75Protocol.readRequest(args))
         return try keyboard.getFeature(reportID: F75Protocol.reportID)
     }
@@ -127,16 +165,16 @@ final class Server {
     private func startKeepalive() {
         guard keepalive == nil else { return }
         keepalive = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-            guard let self, let frame = self.directFrame,
+            guard let self, let colors = self.directColors,
                   Date().timeIntervalSince(self.lastFrameSent) > 0.9 else { return }
-            if (try? self.keyboard.sendFeature(frame)) != nil { self.lastFrameSent = Date() }
+            if (try? self.sendColors(colors)) != nil { self.lastFrameSent = Date() }
         }
     }
 
     private func stopDirect() {
         keepalive?.invalidate()
         keepalive = nil
-        directFrame = nil
+        directColors = nil
     }
 }
 

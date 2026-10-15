@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Loader2, MousePointerClick, RefreshCw, Save, Undo2 } from 'lucide-react'
+import { Loader2, MousePointerClick, Music, RefreshCw, Save, Undo2 } from 'lucide-react'
+import { renderFrame } from '@shared/effects'
 import {
   decodeOnboard,
   diffOnboard,
@@ -15,7 +16,7 @@ import {
   type OnboardEffect,
 } from '@shared/onboard'
 import { KeyboardView } from '@/components/keyboard-view'
-import { useAnimationTime } from '@/hooks/use-f75'
+import { useAnimationTime, useAudioBands, useLighting } from '@/hooks/use-f75'
 import { useLayout } from '@/hooks/use-layout'
 import { keyIdFromCode, renderOnboardDemo, type Press } from '@/lib/onboard-demo'
 import { Badge } from '@/components/ui/badge'
@@ -66,12 +67,24 @@ export function useEffectDemo(effect: OnboardEffect | undefined, settings: Effec
   return { frame, press, reactive }
 }
 
-export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs: ReactNode }) {
+/** Stand-in spectrum so the Music tile has something to show before it is streaming. */
+const fakeBands = (t: number) =>
+  Array.from({ length: 16 }, (_, i) =>
+    Math.max(0, Math.min(1, 0.45 + 0.3 * Math.sin(t * 4 + i * 0.8) + 0.2 * Math.sin(t * 7.3 + i * 1.9) - i * 0.015)),
+  )
+
+export function OnboardLighting({ connected, wireless, tabs }: { connected: boolean; wireless: boolean; tabs: ReactNode }) {
   const [stored, setStored] = useState<OnboardConfig | null>(null)
   const [draft, setDraft] = useState<OnboardConfig | null>(null)
   const [busy, setBusy] = useState<'read' | 'write' | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [appOverrides, setAppOverrides] = useState(false)
+  const [lighting, updateLighting] = useLighting()
+
+  const musicActive = lighting.effect === 'music'
+  const appOverrides = lighting.effect !== 'hardware' && !musicActive
+  // null follows whatever is running, so the Music tile starts selected while it streams.
+  const [musicPicked, setMusicPicked] = useState<boolean | null>(null)
+  const music = musicPicked ?? (musicActive || !draft)
 
   const load = useCallback(async () => {
     setBusy('read')
@@ -88,20 +101,28 @@ export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs:
   }, [])
 
   useEffect(() => {
-    if (connected) void load()
-    void window.f75.getLighting().then((l) => setAppOverrides(l.effect !== 'hardware'))
-  }, [connected, load])
+    if (connected && !wireless) void load()
+  }, [connected, wireless, load])
 
   const changes = useMemo(() => (stored && draft ? diffOnboard(stored, draft) : []), [stored, draft])
+  const dirty = music ? !musicActive : changes.length > 0 || musicActive
 
   const save = async () => {
-    setBusy('write')
     setError(null)
+    if (music) {
+      updateLighting({ effect: 'music' })
+      setMusicPicked(null)
+      return
+    }
+    setBusy('write')
     try {
-      const config = decodeOnboard(await window.f75.writeOnboard(changes))
-      setStored(config)
-      setDraft(config)
-      setAppOverrides(false)
+      if (changes.length > 0) {
+        const config = decodeOnboard(await window.f75.writeOnboard(changes))
+        setStored(config)
+        setDraft(config)
+      }
+      updateLighting({ effect: 'hardware' })
+      setMusicPicked(null)
     } catch (err) {
       setError((err as Error).message)
     } finally {
@@ -109,11 +130,25 @@ export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs:
     }
   }
 
-  const effect = ONBOARD_EFFECTS.find((e) => e.id === draft?.effect)
-  const settings = draft ? draft.settings[draft.effect] : undefined
+  const discard = () => {
+    setDraft(stored)
+    setMusicPicked(null)
+  }
+
+  const effect = music ? undefined : ONBOARD_EFFECTS.find((e) => e.id === draft?.effect)
+  const settings = draft && !music ? draft.settings[draft.effect] : undefined
   const editable = !!effect && effect.id !== OFF_EFFECT && effect.id !== SELF_DEFINE_EFFECT && !!settings
 
   const demo = useEffectDemo(effect, settings)
+  const bands = useAudioBands(music && musicActive)
+  const t = now()
+  const frame = music
+    ? renderFrame(
+        { ...lighting, effect: 'music', brightness: Math.max(lighting.brightness, 35) },
+        t,
+        bands.current.length > 0 ? bands.current : fakeBands(t),
+      )
+    : demo.frame
 
   const patchSettings = (patch: Partial<EffectSettings>) =>
     setDraft((d) => d && { ...d, settings: { ...d.settings, [d.effect]: { ...d.settings[d.effect], ...patch } } })
@@ -127,7 +162,7 @@ export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs:
     )
   }
 
-  if (!draft) {
+  if (!draft && !wireless) {
     return (
       <div className="text-muted-foreground flex flex-col items-center gap-3 py-16 text-sm">
         {tabs}
@@ -142,16 +177,26 @@ export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs:
     )
   }
 
+  const tileClass = (selected: boolean) =>
+    cn(
+      'hover:bg-accent relative flex min-h-14 items-center justify-center gap-1.5 rounded-lg border p-2 text-center text-xs font-medium transition-colors disabled:opacity-40',
+      selected && 'border-primary bg-accent',
+    )
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-3">
-        <KeyboardView colors={demo.frame} onKeyDown={demo.reactive ? (key) => demo.press(key.led) : undefined} />
+        <KeyboardView
+          colors={frame}
+          onKeyDown={!music && demo.reactive ? (key) => demo.press(key.led) : undefined}
+        />
         {tabs}
         <p className="text-muted-foreground text-xs">
-          {demo.reactive
-            ? 'Demo: click keys or type to try it out. '
-            : 'Demo of the effect, roughly how the keyboard shows it. '}
-          The keyboard runs this itself, even when it isn't connected to this Mac.
+          {music
+            ? musicActive
+              ? 'Live: play something on your Mac and the keyboard follows it.'
+              : 'Demo of the Music effect. Save to start streaming it to the keyboard.'
+            : `${demo.reactive ? 'Demo: click keys or type to try it out. ' : 'Demo of the effect, roughly how the keyboard shows it. '}The keyboard runs this itself, even when it isn't connected to this Mac.`}
         </p>
       </div>
 
@@ -174,47 +219,118 @@ export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs:
                 <CardTitle>Saved effect</CardTitle>
                 <CardDescription>Stored on the keyboard. The same list you cycle through with Fn shortcuts.</CardDescription>
               </div>
-              <Button variant="ghost" size="sm" disabled={!!busy} onClick={() => void load()}>
-                <RefreshCw className={cn(busy === 'read' && 'animate-spin')} /> Reload
-              </Button>
+              {!wireless && (
+                <Button variant="ghost" size="sm" disabled={!!busy} onClick={() => void load()}>
+                  <RefreshCw className={cn(busy === 'read' && 'animate-spin')} /> Reload
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent className="grid grid-cols-4 gap-2">
-            {ONBOARD_EFFECTS.map((e) => {
-              const isStored = stored?.effect === e.id
-              const locked = (e.id === SELF_DEFINE_EFFECT || e.unsupported) && !isStored
-              return (
-                <button
-                  key={e.id}
-                  type="button"
-                  disabled={locked || !!busy}
-                  title={
-                    e.unsupported
-                      ? "This effect stays dark on this keyboard's firmware."
-                      : locked
-                        ? 'Per-key mode editing is coming next.'
-                        : undefined
-                  }
-                  onClick={() => setDraft((d) => d && { ...d, effect: e.id })}
-                  className={cn(
-                    'hover:bg-accent relative flex min-h-14 items-center justify-center rounded-lg border p-2 text-center text-xs font-medium transition-colors disabled:opacity-40',
-                    draft.effect === e.id && 'border-primary bg-accent',
-                  )}
-                >
-                  {e.name}
-                  {isStored && <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-emerald-400" />}
-                </button>
-              )
-            })}
+            {draft ? (
+              ONBOARD_EFFECTS.map((e) => {
+                const isStored = stored?.effect === e.id
+                const locked = (e.id === SELF_DEFINE_EFFECT || e.unsupported) && !isStored
+                return (
+                  <button
+                    key={e.id}
+                    type="button"
+                    disabled={locked || !!busy}
+                    title={
+                      e.unsupported
+                        ? "This effect stays dark on this keyboard's firmware."
+                        : locked
+                          ? 'Per-key mode editing is coming next.'
+                          : undefined
+                    }
+                    onClick={() => {
+                      setMusicPicked(false)
+                      setDraft((d) => d && { ...d, effect: e.id })
+                    }}
+                    className={tileClass(!music && draft.effect === e.id)}
+                  >
+                    {e.name}
+                    {isStored && (
+                      <span
+                        title={musicActive ? 'Saved on the keyboard (shown when the app stops streaming)' : 'Saved on the keyboard'}
+                        className={cn(
+                          'absolute top-1.5 right-1.5 size-1.5 rounded-full',
+                          musicActive ? 'bg-muted-foreground' : 'bg-emerald-400',
+                        )}
+                      />
+                    )}
+                  </button>
+                )
+              })
+            ) : (
+              <p className="text-muted-foreground col-span-4 text-sm">
+                Connected through the 2.4 GHz dongle, which can't read or change the effects stored on the keyboard.
+                Plug in the USB cable to edit them.
+              </p>
+            )}
+            <button
+              type="button"
+              disabled={!!busy}
+              title="Made by this app and streamed to the keyboard"
+              onClick={() => setMusicPicked(true)}
+              className={tileClass(music)}
+            >
+              <Music className="size-3.5" /> Music
+              {musicActive && <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-emerald-400" />}
+            </button>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>{effect?.name ?? `Effect ${draft.effect}`}</CardTitle>
-            <CardDescription>The keyboard remembers these separately for every effect.</CardDescription>
+            <CardTitle>{music ? 'Music' : (effect?.name ?? `Effect ${draft?.effect}`)}</CardTitle>
+            <CardDescription>
+              {music
+                ? 'Streamed by this app over the USB cable or the 2.4 GHz dongle.'
+                : 'The keyboard remembers these separately for every effect.'}
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
+            {music && (
+              <>
+                <div className="bg-muted/50 flex flex-col gap-1.5 rounded-lg border p-3 text-sm">
+                  <p>
+                    A spectrum that follows whatever your Mac is playing: each column of keys is a bar, bass on the left
+                    and treble on the right.
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    The keyboard has no way to hear audio, so this can't live in its memory. The app keeps it running,
+                    even with the window closed, and sends it wirelessly through the dongle when the cable is unplugged.
+                    When the app quits, the keyboard goes back to the effect saved on it.
+                  </p>
+                  <p className="text-xs text-amber-400">
+                    For the dongle, the keyboard must be on Fixed on: animated effects repaint the keys and hide the
+                    stream.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label>Brightness · {lighting.brightness}%</Label>
+                  <Slider
+                    value={[lighting.brightness]}
+                    min={0}
+                    max={100}
+                    step={1}
+                    onValueChange={([v]) => updateLighting({ brightness: v })}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label>Sensitivity · {lighting.speed}%</Label>
+                  <Slider
+                    value={[lighting.speed]}
+                    min={0}
+                    max={100}
+                    step={1}
+                    onValueChange={([v]) => updateLighting({ speed: v })}
+                  />
+                </div>
+              </>
+            )}
+
             {effect && (
               <div className="bg-muted/50 flex flex-col gap-1.5 rounded-lg border p-3 text-sm">
                 <p>{effect.description}</p>
@@ -234,7 +350,7 @@ export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs:
               </div>
             )}
 
-            {editable && settings ? (
+            {editable && settings && (
               <>
                 <div className="flex flex-col gap-2">
                   <Label>
@@ -294,7 +410,9 @@ export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs:
                   </div>
                 )}
               </>
-            ) : (
+            )}
+
+            {!music && !editable && draft && (
               <p className="text-muted-foreground text-sm">
                 {draft.effect === SELF_DEFINE_EFFECT
                   ? 'The keyboard is showing its saved per-key colours. Editing them here is coming next.'
@@ -305,13 +423,14 @@ export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs:
             {error && <p className="text-destructive text-sm">{error}</p>}
 
             <div className="mt-auto flex items-center gap-2">
-              <Button disabled={changes.length === 0 || !!busy} onClick={() => void save()}>
-                {busy === 'write' ? <Loader2 className="animate-spin" /> : <Save />} Save to keyboard
+              <Button disabled={!dirty || !!busy || (!music && wireless)} onClick={() => void save()}>
+                {busy === 'write' ? <Loader2 className="animate-spin" /> : <Save />}{' '}
+                {music ? 'Save & stream' : 'Save to keyboard'}
               </Button>
-              <Button variant="ghost" disabled={changes.length === 0 || !!busy} onClick={() => setDraft(stored)}>
+              <Button variant="ghost" disabled={!dirty || !!busy} onClick={discard}>
                 <Undo2 /> Discard
               </Button>
-              {changes.length > 0 && <Badge variant="secondary">Unsaved</Badge>}
+              {dirty && <Badge variant="secondary">Unsaved</Badge>}
             </div>
           </CardContent>
         </Card>

@@ -37,6 +37,20 @@ export function useLighting() {
   return [lighting, update] as const
 }
 
+/** Latest audio spectrum while `active` (empty when the Music effect isn't running). */
+export function useAudioBands(active: boolean) {
+  const bands = useRef<number[]>([])
+  useEffect(() => {
+    if (!active) return
+    const off = window.f75.onAudio((b) => (bands.current = b))
+    return () => {
+      off()
+      bands.current = []
+    }
+  }, [active])
+  return bands
+}
+
 export function useAnimationTime() {
   const [t, setT] = useState(0)
   useEffect(() => {

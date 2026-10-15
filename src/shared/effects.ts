@@ -20,10 +20,13 @@ const ledX = new Map<number, number>(F75_KEYS.map((key) => [key.led, Math.floor(
 
 /** Whether the effect needs to be re-rendered every tick. */
 export const isAnimated = (state: LightingState) =>
-  state.effect === 'breathing' || state.effect === 'spectrum' || state.effect === 'wave'
+  state.effect === 'breathing' || state.effect === 'spectrum' || state.effect === 'wave' || state.effect === 'music'
 
-/** Render one frame of colours (one entry per LED slot) at time `t` in seconds. */
-export function renderFrame(state: LightingState, t: number): RGB[] {
+/**
+ * Render one frame of colours (one entry per LED slot) at time `t` in seconds.
+ * `bands` is the audio spectrum (one 0–1 level per LED column) for the music effect.
+ */
+export function renderFrame(state: LightingState, t: number, bands: number[] = []): RGB[] {
   const brightness = state.brightness / 100
   const rate = 0.1 + (state.speed / 100) * 1.9
   const frame: RGB[] = Array.from({ length: LED_SLOTS }, () => [0, 0, 0])
@@ -48,6 +51,17 @@ export function renderFrame(state: LightingState, t: number): RGB[] {
         frame[key.led] = hsvToRgb((hue + 360) % 360, 1, brightness)
       }
       break
+    case 'music': {
+      // Each LED column is a spectrum bar growing up from the bottom row; speed acts as sensitivity.
+      const gain = 0.6 + (state.speed / 100) * 1.4
+      for (const key of F75_KEYS) {
+        const column = Math.floor(key.led / 6)
+        const height = Math.min(1, (bands[column] ?? 0) * gain) * 6
+        const fill = Math.max(0, Math.min(1, height - (5 - (key.led % 6))))
+        if (fill > 0) frame[key.led] = hsvToRgb((column / 16) * 300 + t * 15, 1, brightness * fill)
+      }
+      break
+    }
     case 'custom':
       for (const key of F75_KEYS) frame[key.led] = scale(state.perKey[key.led] ?? [0, 0, 0], brightness)
       break

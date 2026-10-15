@@ -69,4 +69,71 @@ enum F75Protocol {
         }
         return buf
     }
+
+    // MARK: 2.4 GHz dongle (from the aula-f75 project)
+    //
+    // 20-byte output reports: `13 88 total seq len data[14] checksum`, where the
+    // data is a stream of colour groups `R G B count led…`. Unlisted LEDs are off.
+    // `len` is 0x10 + data bytes in that report; a lone 0x23 report means "all off".
+
+    static let dongleReportID: UInt8 = 0x13
+    static let dongleCommand: UInt8 = 0x88
+    static let dongleDataOffset = 5
+    static let dongleDataPerReport = 14
+    static let dongleMaxReports = 6
+
+    private static func dongleChecksum(_ report: [UInt8]) -> UInt8 {
+        UInt8(truncatingIfNeeded: report.prefix(19).reduce(0) { $0 + Int($1) })
+    }
+
+    static func dongleIdleReport() -> [UInt8] {
+        var r = [UInt8](repeating: 0, count: HIDKeyboard.dongleReportLength)
+        r[0] = dongleReportID
+        r[1] = dongleCommand
+        r[2] = 0x01
+        r[4] = 0x23
+        r[19] = dongleChecksum(r)
+        return r
+    }
+
+    /// Colours are rounded to a grid (coarser until the frame fits) so keys can
+    /// share a group; a frame is capped at `dongleMaxReports` reports.
+    static func dongleReports(_ colors: [[UInt8]]) -> [[UInt8]] {
+        let maxBytes = dongleMaxReports * dongleDataPerReport
+        var step = 64
+        var data: [UInt8] = []
+        while true {
+            var groups: [[UInt8]: [UInt8]] = [:]
+            for (led, c) in colors.prefix(directLEDSlots).enumerated() where c.count >= 3 && (c[0] | c[1] | c[2]) != 0 {
+                var q = c.prefix(3).map { UInt8(min(255, (Int($0) + step / 2) / step * step)) }
+                // A dim key must not round to black, or it simply disappears.
+                if q == [0, 0, 0], let top = c.prefix(3).max() {
+                    q = c.prefix(3).map { $0 == top ? UInt8(min(255, step)) : 0 }
+                }
+                groups[q, default: []].append(UInt8(led))
+            }
+            if groups.isEmpty { return [dongleIdleReport()] }
+            data = []
+            for (rgb, leds) in groups.sorted(by: { $0.value.count > $1.value.count }) {
+                data += rgb + [UInt8(leds.count)] + leds
+            }
+            if data.count <= maxBytes || step >= 256 { break }
+            step *= 2
+        }
+
+        let chunks = stride(from: 0, to: min(data.count, maxBytes), by: dongleDataPerReport).map {
+            Array(data[$0..<min($0 + dongleDataPerReport, data.count)])
+        }
+        return chunks.enumerated().map { seq, chunk in
+            var r = [UInt8](repeating: 0, count: HIDKeyboard.dongleReportLength)
+            r[0] = dongleReportID
+            r[1] = dongleCommand
+            r[2] = UInt8(chunks.count)
+            r[3] = UInt8(seq)
+            r[4] = UInt8(0x10 + chunk.count)
+            r.replaceSubrange(dongleDataOffset..<(dongleDataOffset + chunk.count), with: chunk)
+            r[19] = dongleChecksum(r)
+            return r
+        }
+    }
 }
