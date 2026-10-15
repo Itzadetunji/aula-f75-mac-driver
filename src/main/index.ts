@@ -136,8 +136,8 @@ function applyLighting() {
   }
   tick()
   // Faster than ~21 FPS starves the keyboard's key scanning (dropped/doubled keypresses);
-  // the radio link needs about twice the gap.
-  if (isAnimated(lighting)) animationTimer = setInterval(tick, status.info?.transport === 'wireless' ? 95 : 50)
+  // the radio link needs a little more room (the helper also skips unchanged frames there).
+  if (isAnimated(lighting)) animationTimer = setInterval(tick, status.info?.transport === 'wireless' ? 60 : 50)
 }
 
 function startHelper() {

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Loader2, MousePointerClick, Music, RefreshCw, Save, Undo2 } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { Loader2, MousePointerClick, Music } from 'lucide-react'
 import { MusicMeter, renderFrame } from '@shared/effects'
 import {
   decodeOnboard,
@@ -20,8 +20,6 @@ import { MusicStylePicker } from '@/components/music-style-picker'
 import { useAnimationTime, useAudioBands, useLighting } from '@/hooks/use-f75'
 import { useLayout } from '@/hooks/use-layout'
 import { keyIdFromCode, renderOnboardDemo, type Press } from '@/lib/onboard-demo'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
@@ -75,65 +73,76 @@ const fakeBands = (t: number) =>
   )
 
 export function OnboardLighting({ connected, wireless, tabs }: { connected: boolean; wireless: boolean; tabs: ReactNode }) {
-  const [stored, setStored] = useState<OnboardConfig | null>(null)
+  // `draft` is what the controls show: the stored config plus a slider still being dragged.
   const [draft, setDraft] = useState<OnboardConfig | null>(null)
-  const [busy, setBusy] = useState<'read' | 'write' | null>(null)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lighting, updateLighting] = useLighting()
+  const stored = useRef<OnboardConfig | null>(null)
+  const writing = useRef(false)
+  const queued = useRef<OnboardConfig | null>(null)
+  const dragging = useRef(false)
 
   const musicActive = lighting.effect === 'music'
   const appOverrides = lighting.effect !== 'hardware' && !musicActive
-  // null follows whatever is running, so the Music tile starts selected while it streams.
-  const [musicPicked, setMusicPicked] = useState<boolean | null>(null)
-  const music = musicPicked ?? (musicActive || !draft)
+  const music = musicActive || !draft
 
-  const load = useCallback(async () => {
-    setBusy('read')
-    setError(null)
-    try {
-      const config = decodeOnboard(await window.f75.readOnboard())
-      setStored(config)
-      setDraft(config)
-    } catch (err) {
-      setError((err as Error).message)
-    } finally {
-      setBusy(null)
-    }
-  }, [])
-
+  // Re-read the keyboard every second, so Fn changes made on it show up here.
   useEffect(() => {
-    if (connected && !wireless) void load()
-  }, [connected, wireless, load])
+    if (!connected || wireless) return
+    let cancelled = false
+    let reading = false
+    const poll = async () => {
+      if (reading || writing.current || dragging.current) return
+      reading = true
+      try {
+        const config = decodeOnboard(await window.f75.readOnboard())
+        if (cancelled || writing.current || dragging.current) return
+        const prev = stored.current
+        if (prev && prev.perKey === config.perKey && diffOnboard(prev, config).length === 0) return
+        stored.current = config
+        setDraft(config)
+        setError(null)
+      } catch (err) {
+        if (!stored.current && !cancelled) setError((err as Error).message)
+      } finally {
+        reading = false
+      }
+    }
+    void poll()
+    const timer = window.setInterval(() => void poll(), 1000)
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
+  }, [connected, wireless])
 
-  const changes = useMemo(() => (stored && draft ? diffOnboard(stored, draft) : []), [stored, draft])
-  const dirty = music ? !musicActive : changes.length > 0 || musicActive
-
-  const save = async () => {
-    setError(null)
-    if (music) {
-      updateLighting({ effect: 'music' })
-      setMusicPicked(null)
+  /** Writes `next` to the keyboard straight away; rapid changes are coalesced. */
+  const apply = async (next: OnboardConfig) => {
+    setDraft(next)
+    if (writing.current) {
+      queued.current = next
       return
     }
-    setBusy('write')
+    writing.current = true
+    setSaving(true)
+    setError(null)
     try {
-      if (changes.length > 0) {
-        const config = decodeOnboard(await window.f75.writeOnboard(changes))
-        setStored(config)
-        setDraft(config)
+      let target: OnboardConfig | null = next
+      while (target && stored.current) {
+        queued.current = null
+        const changes = diffOnboard(stored.current, target)
+        if (changes.length > 0) stored.current = decodeOnboard(await window.f75.writeOnboard(changes))
+        target = queued.current
       }
-      updateLighting({ effect: 'hardware' })
-      setMusicPicked(null)
+      if (lighting.effect !== 'hardware') updateLighting({ effect: 'hardware' })
     } catch (err) {
       setError((err as Error).message)
     } finally {
-      setBusy(null)
+      writing.current = false
+      setSaving(false)
+      setDraft(stored.current)
     }
-  }
-
-  const discard = () => {
-    setDraft(stored)
-    setMusicPicked(null)
   }
 
   const effect = music ? undefined : ONBOARD_EFFECTS.find((e) => e.id === draft?.effect)
@@ -149,8 +158,26 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
     ? renderFrame({ ...lighting, effect: 'music', brightness: Math.max(lighting.brightness, 35) }, t, meter.current)
     : demo.frame
 
-  const patchSettings = (patch: Partial<EffectSettings>) =>
-    setDraft((d) => d && { ...d, settings: { ...d.settings, [d.effect]: { ...d.settings[d.effect], ...patch } } })
+  const withSettings = (patch: Partial<EffectSettings>): OnboardConfig | null =>
+    draft && { ...draft, settings: { ...draft.settings, [draft.effect]: { ...draft.settings[draft.effect], ...patch } } }
+
+  /** Sliders preview while dragging and write once released. */
+  const dragSettings = (patch: Partial<EffectSettings>) => {
+    dragging.current = true
+    setDraft(withSettings(patch))
+  }
+  const commitSettings = (patch: Partial<EffectSettings>) => {
+    dragging.current = false
+    const next = withSettings(patch)
+    if (next) void apply(next)
+  }
+
+  const visibleEffects = ONBOARD_EFFECTS.filter(
+    (e) =>
+      import.meta.env.DEV ||
+      (!e.unsupported && e.id !== SELF_DEFINE_EFFECT) ||
+      stored.current?.effect === e.id,
+  )
 
   if (!connected) {
     return (
@@ -165,13 +192,8 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
     return (
       <div className="text-muted-foreground flex flex-col items-center gap-3 py-16 text-sm">
         {tabs}
-        {busy === 'read' && <Loader2 className="size-5 animate-spin" />}
-        {error ?? 'Reading the lighting saved on the keyboard…'}
-        {error && (
-          <Button variant="outline" size="sm" onClick={() => void load()}>
-            Try again
-          </Button>
-        )}
+        {!error && <Loader2 className="size-5 animate-spin" />}
+        {error ? `${error} Retrying…` : 'Reading the lighting saved on the keyboard…'}
       </div>
     )
   }
@@ -194,7 +216,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
           {music
             ? musicActive
               ? 'Live: play something on your Mac and the keyboard follows it.'
-              : 'Demo of the Music effect. Save to start streaming it to the keyboard.'
+              : 'Demo of the Music effect. Click the Music tile to stream it to the keyboard.'
             : `${demo.reactive ? 'Demo: click keys or type to try it out. ' : 'Demo of the effect, roughly how the keyboard shows it. '}The keyboard runs this itself, even when it isn't connected to this Mac.`}
         </p>
       </div>
@@ -203,8 +225,8 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
         <Card className="border-amber-500/40 py-4">
           <CardHeader>
             <CardDescription>
-              The app's live lighting is covering the keyboard's own effect right now. Saving switches the app to
-              On-board so you can see the result.
+              The app's live lighting is covering the keyboard's own effect right now. Picking an effect here switches
+              the app to On-board so you can see the result.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -213,28 +235,21 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
       <div className="grid grid-cols-[1.4fr_1fr] gap-6">
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex flex-col gap-1.5">
-                <CardTitle>Saved effect</CardTitle>
-                <CardDescription>Stored on the keyboard. The same list you cycle through with Fn shortcuts.</CardDescription>
-              </div>
-              {!wireless && (
-                <Button variant="ghost" size="sm" disabled={!!busy} onClick={() => void load()}>
-                  <RefreshCw className={cn(busy === 'read' && 'animate-spin')} /> Reload
-                </Button>
-              )}
-            </div>
+            <CardTitle>Saved effect</CardTitle>
+            <CardDescription>
+              Stored on the keyboard, the same list you cycle through with Fn shortcuts. Changes apply straight away.
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-4 gap-2">
             {draft ? (
-              ONBOARD_EFFECTS.map((e) => {
-                const isStored = stored?.effect === e.id
+              visibleEffects.map((e) => {
+                const isStored = stored.current?.effect === e.id
                 const locked = (e.id === SELF_DEFINE_EFFECT || e.unsupported) && !isStored
                 return (
                   <button
                     key={e.id}
                     type="button"
-                    disabled={locked || !!busy}
+                    disabled={locked}
                     title={
                       e.unsupported
                         ? "This effect stays dark on this keyboard's firmware."
@@ -242,10 +257,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
                           ? 'Per-key mode editing is coming next.'
                           : undefined
                     }
-                    onClick={() => {
-                      setMusicPicked(false)
-                      setDraft((d) => d && { ...d, effect: e.id })
-                    }}
+                    onClick={() => void apply({ ...draft, effect: e.id })}
                     className={tileClass(!music && draft.effect === e.id)}
                   >
                     {e.name}
@@ -269,9 +281,8 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
             )}
             <button
               type="button"
-              disabled={!!busy}
               title="Made by this app and streamed to the keyboard"
-              onClick={() => setMusicPicked(true)}
+              onClick={() => updateLighting({ effect: 'music' })}
               className={tileClass(music)}
             >
               <Music className="size-3.5" /> Music
@@ -361,7 +372,8 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
                     min={0}
                     max={MAX_BRIGHTNESS}
                     step={1}
-                    onValueChange={([v]) => patchSettings({ brightness: v })}
+                    onValueChange={([v]) => dragSettings({ brightness: v })}
+                    onValueCommit={([v]) => commitSettings({ brightness: v })}
                   />
                 </div>
 
@@ -375,7 +387,8 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
                       min={0}
                       max={MAX_SPEED}
                       step={1}
-                      onValueChange={([v]) => patchSettings({ speed: v })}
+                      onValueChange={([v]) => dragSettings({ speed: v })}
+                      onValueCommit={([v]) => commitSettings({ speed: v })}
                     />
                   </div>
                 )}
@@ -389,7 +402,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
                           key={c.name}
                           type="button"
                           title={c.name}
-                          onClick={() => patchSettings({ color: i })}
+                          onClick={() => commitSettings({ color: i })}
                           className={cn(
                             'size-7 rounded-full border-2 border-transparent',
                             settings.color === i && 'border-white',
@@ -400,7 +413,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
                       <button
                         type="button"
                         title="Multicolour"
-                        onClick={() => patchSettings({ color: MULTICOLOR })}
+                        onClick={() => commitSettings({ color: MULTICOLOR })}
                         className={cn(
                           'size-7 rounded-full border-2 border-transparent bg-[conic-gradient(red,yellow,lime,cyan,blue,magenta,red)]',
                           settings.color === MULTICOLOR && 'border-white',
@@ -422,16 +435,11 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
 
             {error && <p className="text-destructive text-sm">{error}</p>}
 
-            <div className="mt-auto flex items-center gap-2">
-              <Button disabled={!dirty || !!busy || (!music && wireless)} onClick={() => void save()}>
-                {busy === 'write' ? <Loader2 className="animate-spin" /> : <Save />}{' '}
-                {music ? 'Save & stream' : 'Save to keyboard'}
-              </Button>
-              <Button variant="ghost" disabled={!dirty || !!busy} onClick={discard}>
-                <Undo2 /> Discard
-              </Button>
-              {dirty && <Badge variant="secondary">Unsaved</Badge>}
-            </div>
+            {saving && (
+              <p className="text-muted-foreground mt-auto flex items-center gap-1.5 text-xs">
+                <Loader2 className="size-3.5 animate-spin" /> Saving to the keyboard…
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -20,7 +20,7 @@ export type MacroErrors = Record<string, string>
 
 export type EffectId = 'hardware' | 'off' | 'static' | 'breathing' | 'spectrum' | 'wave' | 'music' | 'custom'
 
-export type MusicStyle = 'glow' | 'heat' | 'rainbow'
+export type MusicStyle = 'horizontal' | 'heat' | 'rainbow'
 
 export interface LightingState {
   effect: EffectId
@@ -85,7 +85,7 @@ export interface F75Api {
 
 export const DEFAULT_LIGHTING: LightingState = {
   effect: 'hardware',
-  musicStyle: 'glow',
+  musicStyle: 'horizontal',
   color: [0, 170, 255],
   brightness: 80,
   speed: 50,

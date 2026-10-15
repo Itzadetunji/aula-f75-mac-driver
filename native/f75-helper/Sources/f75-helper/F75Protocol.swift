@@ -90,7 +90,9 @@ enum F75Protocol {
     /// share a group; a frame is capped at `dongleMaxReports` reports.
     static func dongleReports(_ colors: [[UInt8]]) -> [[UInt8]] {
         let maxBytes = dongleMaxReports * dongleDataPerReport
-        var step = 64
+        // Four levels per channel (0, 85, 170, 255), like the vendor's own palette:
+        // fewer colours means fewer groups, so most frames fit in one or two reports.
+        var step = 85
         var data: [UInt8] = []
         while true {
             var groups: [[UInt8]: [UInt8]] = [:]

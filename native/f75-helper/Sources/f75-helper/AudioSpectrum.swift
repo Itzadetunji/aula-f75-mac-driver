@@ -3,50 +3,55 @@ import CoreMedia
 import Foundation
 import ScreenCaptureKit
 
-/// Turns mono PCM into `bandCount` log-spaced levels (0–1), with fast attack,
-/// slow release and automatic gain so quiet and loud tracks both fill the board.
+/// Turns mono PCM into `bandCount` log-spaced levels (0–1), like a regular
+/// spectrum analyser: each band's loudness in dB on a fixed window below a
+/// slowly adapting reference. Motion (attack/fall) is left to the renderer.
 final class SpectrumAnalyzer {
     private let size = 2048
+    private let hop = 1024
     private let log2n: vDSP_Length = 11
     private let fft: FFTSetup
     private let window: [Float]
     private let bandRanges: [Range<Int>]
+    /// Music loses energy towards the treble; this evens the bands out (dB).
+    private let tilt: [Float]
+    private let referenceFall: Float
     private var buffer: [Float] = []
-    private var levels: [Float]
-    private var averageDB: [Float]
-    private var peakDB: Float = -40
+    private var referenceDB: Float?
+    private static let rangeDB: Float = 40
 
     init(bandCount: Int, sampleRate: Double) {
         fft = vDSP_create_fftsetup(log2n, FFTRadix(kFFTRadix2))!
         window = vDSP.window(ofType: Float.self, usingSequence: .hanningDenormalized, count: size, isHalfWindow: false)
-        levels = [Float](repeating: 0, count: bandCount)
-        averageDB = [Float](repeating: -60, count: bandCount)
+        // The reference may drop about 3 dB per second, so quiet passages stay quiet.
+        referenceFall = Float(3.0 * Double(hop) / sampleRate)
 
         let binHz = sampleRate / Double(size)
         let low = 40.0, high = 16_000.0
+        let edges = (0...bandCount).map { low * pow(high / low, Double($0) / Double(bandCount)) }
         bandRanges = (0..<bandCount).map { i in
-            let from = low * pow(high / low, Double(i) / Double(bandCount))
-            let to = low * pow(high / low, Double(i + 1) / Double(bandCount))
-            let start = max(1, Int(from / binHz))
-            return start..<max(start + 1, Int(to / binHz))
+            let start = max(1, Int(edges[i] / binHz))
+            return start..<max(start + 1, Int(edges[i + 1] / binHz))
         }
+        tilt = (0..<bandCount).map { i in Float(3.5 * log2(sqrt(edges[i] * edges[i + 1]) / low)) }
     }
 
     deinit { vDSP_destroy_fftsetup(fft) }
 
-    /// Returns new levels once enough samples have arrived for a frame.
+    /// Returns new levels when at least one frame is ready (frames overlap by half).
     func push(_ samples: [Float]) -> [Float]? {
         buffer += samples
-        guard buffer.count >= size else { return nil }
-        let frame = Array(buffer.suffix(size))
-        buffer.removeAll(keepingCapacity: true)
-
-        // Below roughly -66 dBFS counts as silence; otherwise the auto-gain
-        // keeps turning up until it shows the noise floor.
-        if vDSP.rootMeanSquare(frame) < 0.0005 {
-            for i in levels.indices { levels[i] *= 0.45 }
-            return levels
+        var result: [Float]?
+        while buffer.count >= size {
+            result = analyze(Array(buffer.prefix(size)))
+            buffer.removeFirst(hop)
         }
+        return result
+    }
+
+    private func analyze(_ frame: [Float]) -> [Float] {
+        // Below roughly -66 dBFS counts as silence.
+        if vDSP.rootMeanSquare(frame) < 0.0005 { return [Float](repeating: 0, count: bandRanges.count) }
 
         let windowed = vDSP.multiply(frame, window)
         var real = [Float](repeating: 0, count: size / 2)
@@ -65,26 +70,19 @@ final class SpectrumAnalyzer {
             }
         }
 
-        let db = bandRanges.map { range -> Float in
+        let db = bandRanges.enumerated().map { i, range -> Float in
             let slice = magnitudes[range.clamped(to: 0..<magnitudes.count)]
             let mean = slice.isEmpty ? 0 : slice.reduce(0, +) / Float(slice.count)
-            return 10 * log10(mean + 1e-9)
+            return 10 * log10(mean + 1e-12) + tilt[i]
         }
 
-        // Auto-gain: follow the loudest band quickly, let it fall back slowly.
-        peakDB = max(db.max() ?? peakDB, peakDB - 0.1)
-        let floorDB = peakDB - 32
-        for (i, value) in db.enumerated() {
-            // Steady loudness only fills the lower part of a bar (curved so it
-            // doesn't saturate); the rest comes from rising above the band's own
-            // recent average, so beats and changes jump while sustained sound sits low.
-            averageDB[i] = averageDB[i] * 0.94 + value * 0.06
-            let loudness = max(0, min(1, (value - floorDB) / (peakDB - floorDB)))
-            let punch = max(0, min(1, (value - averageDB[i]) / 10))
-            let target = min(1, 0.65 * pow(loudness, 2.2) + 0.4 * punch)
-            levels[i] = levels[i] * 0.45 + target * 0.55
-        }
-        return levels
+        // Reference jumps up to the loudest band at once and sinks slowly.
+        let loudest = db.max() ?? -100
+        let reference = max(loudest, (referenceDB ?? loudest) - referenceFall)
+        referenceDB = reference
+        // A little headroom so only real peaks reach the top row.
+        let top = reference + 4
+        return db.map { max(0, min(1, ($0 - (top - Self.rangeDB)) / Self.rangeDB)) }
     }
 }
 

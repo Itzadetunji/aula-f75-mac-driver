@@ -23,6 +23,8 @@ final class Server {
     private var directColors: [[UInt8]]?
     private var lastFrameSent = Date.distantPast
     private var keepalive: Timer?
+    private var lastDongleReports: [[UInt8]] = []
+    private var lastDongleSent = Date.distantPast
 
     init() {
         keyboard.onChange = { [weak self] transport in
@@ -105,11 +107,16 @@ final class Server {
         switch keyboard.transport {
         case .wired: try keyboard.sendFeature(F75Protocol.directFrame(colors))
         case .wireless:
+            let reports = F75Protocol.dongleReports(colors)
+            // The radio link is the bottleneck: don't resend what the keyboard already shows.
+            if reports == lastDongleReports, Date().timeIntervalSince(lastDongleSent) < 1 { return }
             // The vendor driver leaves ~11 ms between the reports of one message.
-            for (n, report) in F75Protocol.dongleReports(colors).enumerated() {
+            for (n, report) in reports.enumerated() {
                 if n > 0 { usleep(11_000) }
                 try keyboard.sendDongle(report)
             }
+            lastDongleReports = reports
+            lastDongleSent = Date()
         case nil: throw HIDError.notConnected
         }
     }
@@ -175,6 +182,7 @@ final class Server {
         keepalive?.invalidate()
         keepalive = nil
         directColors = nil
+        lastDongleReports = []
     }
 }
 
