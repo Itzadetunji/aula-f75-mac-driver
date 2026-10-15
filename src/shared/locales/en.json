@@ -20,7 +20,8 @@
       "title": "Paused",
       "description": "The app's lighting and macros are off, so the keyboard shows its own saved effect.",
       "resume": "Resume",
-      "pause": "Pause"
+      "pause": "Pause",
+      "blocked": "The app is paused, so nothing is sent to the keyboard. Resume to make changes."
     }
   },
 

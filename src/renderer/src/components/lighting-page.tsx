@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAnimationTime, useAudioBands, useLighting } from '@/hooks/use-f75'
+import { useLayout } from '@/hooks/use-layout'
 import { cn, hexToRgb, rgbToHex } from '@/lib/utils'
 
 /** Labels live under `effects` in the locale files. */
@@ -81,13 +82,14 @@ function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wirel
 
   const isHardware = lighting.effect === 'hardware'
   const [stored, setStored] = useState<OnboardConfig | null>(null)
+  const { preferences } = useLayout()
   useEffect(() => {
-    if (!connected || wireless || !isHardware) return
+    if (!connected || wireless || !isHardware || !preferences.running) return
     window.f75
       .readOnboard()
       .then((bytes) => setStored(decodeOnboard(bytes)))
       .catch(() => setStored(null))
-  }, [connected, wireless, isHardware])
+  }, [connected, wireless, isHardware, preferences.running])
   const storedEffect = isHardware && stored ? ONBOARD_EFFECTS.find((e) => e.id === stored.effect) : undefined
   const demo = useEffectDemo(storedEffect, stored?.settings[stored.effect])
 

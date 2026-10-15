@@ -24,7 +24,7 @@ function LedMapCheck({ connected }: { connected: boolean }) {
   const mappedKey = F75_KEYS.find((k) => k.led === rawLed)
 
   useEffect(() => {
-    if (connected) void window.f75.identifyLed(led)
+    if (connected) void window.f75.identifyLed(led).catch(() => {})
   }, [connected, led])
 
   useEffect(() => () => void window.f75.identifyLed(null), [])

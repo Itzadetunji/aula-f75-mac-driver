@@ -97,7 +97,7 @@ async function refreshDevice() {
 }
 
 async function sendFrame(frame: RGB[]) {
-  if (frameInFlight || !status.connected) return
+  if (frameInFlight || !status.connected || !preferences.running) return
   frameInFlight = true
   try {
     await helper.call('setDirect', { colors: frame })
@@ -129,6 +129,11 @@ function applyLighting() {
   syncAudio()
   if (!status.connected) return
 
+  if (!preferences.running) {
+    void helper.call('stopDirect').catch(() => {})
+    return
+  }
+
   if (identifyingLed !== null) {
     const frame: RGB[] = Array.from({ length: LED_SLOTS }, () => [0, 0, 0])
     frame[identifyingLed] = [255, 255, 255]
@@ -136,7 +141,7 @@ function applyLighting() {
     return
   }
 
-  if (lighting.effect === 'hardware' || !preferences.running) {
+  if (lighting.effect === 'hardware') {
     void helper.call('stopDirect').catch(() => {})
     return
   }
@@ -308,19 +313,28 @@ ipcMain.handle('f75:resumeMacros', () => registerMacros())
 ipcMain.handle('f75:hasAccessibility', () => systemPreferences.isTrustedAccessibilityClient(false))
 ipcMain.handle('f75:requestAccessibility', () => systemPreferences.isTrustedAccessibilityClient(true))
 ipcMain.handle('f75:rawRead', async (_e, args: number[]) => {
+  requireRunning()
   const r = await helper.call<{ raw: string }>('read', { args })
   return r.raw
 })
 ipcMain.handle('f75:readOnboard', async () => {
+  requireRunning()
   const r = await helper.call<{ bytes: number[] }>('readConfig')
   return r.bytes
 })
+/** While paused the app must not touch the keyboard at all. */
+function requireRunning() {
+  if (!preferences.running) throw new Error(translate(preferences.language, 'app.paused.blocked'))
+}
+
 ipcMain.handle('f75:writeOnboard', async (_e, changes: [number, number][]) => {
+  requireRunning()
   if (lighting.effect !== 'hardware') setLighting({ ...lighting, effect: 'hardware' })
   const r = await helper.call<{ bytes: number[] }>('patchConfig', { changes })
   return r.bytes
 })
 ipcMain.handle('f75:writeKeyboardSettings', async (_e, changes: [number, number][]) => {
+  requireRunning()
   const allowed = [SLEEP_OFFSET, DEBOUNCE_OFFSET]
   if (!changes.every(([offset]) => allowed.includes(offset))) throw new Error('Not a keyboard setting')
   const r = await helper.call<{ bytes: number[] }>('patchConfig', { changes })

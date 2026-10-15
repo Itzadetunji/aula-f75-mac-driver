@@ -129,6 +129,8 @@ function AppCard() {
 /** Sleep and debounce live on the keyboard's settings page, which is only safe to write over the cable. */
 function KeyboardCard({ status }: { status: DeviceStatus | null }) {
   const { t } = useTranslation()
+  const { preferences } = usePreferences()
+  const running = preferences.running
   const connected = !!status?.connected
   const wired = connected && status?.info?.transport === 'wired'
   const [page, setPage] = useState<number[] | null>(null)
@@ -141,7 +143,7 @@ function KeyboardCard({ status }: { status: DeviceStatus | null }) {
   useEffect(() => {
     setPage(null)
     setError(null)
-    if (!wired) return
+    if (!wired || !running) return
     let cancelled = false
     window.f75
       .readOnboard()
@@ -150,7 +152,7 @@ function KeyboardCard({ status }: { status: DeviceStatus | null }) {
     return () => {
       cancelled = true
     }
-  }, [wired])
+  }, [wired, running])
 
   const write = async (changes: [number, number][]) => {
     setSaving(true)
@@ -170,7 +172,7 @@ function KeyboardCard({ status }: { status: DeviceStatus | null }) {
   const sleepIndex = sleepDrag ?? Math.max(0, SLEEP_SECONDS.indexOf(sleep?.seconds ?? 300))
   const debounce = page && DEBOUNCE_OFFSET !== null ? debounceFromByte(page[DEBOUNCE_OFFSET]) : null
   const debounceMs = debounceDrag ?? debounce ?? DEFAULT_DEBOUNCE_MS
-  const canEdit = !!page && !saving
+  const canEdit = !!page && !saving && running
 
   return (
     <Card>
@@ -185,7 +187,8 @@ function KeyboardCard({ status }: { status: DeviceStatus | null }) {
             {t(connected ? 'settings.keyboard.cableOnly' : 'settings.keyboard.notConnected')}
           </div>
         )}
-        {wired && !page && !error && (
+        {!running && <p className="text-xs text-amber-400">{t('app.paused.blocked')}</p>}
+        {wired && running && !page && !error && (
           <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
             <Loader2 className="size-3.5 animate-spin" /> {t('settings.keyboard.reading')}
           </p>

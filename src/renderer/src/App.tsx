@@ -1,4 +1,5 @@
 import { Command, Keyboard, Lightbulb, Microscope, Pause, Play, ScanSearch, Settings } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DeviceStatus } from '@shared/types'
 import { LayoutPage } from '@/components/led-check-page'
@@ -28,6 +29,15 @@ function StatusBadge({ status }: { status: DeviceStatus | null }) {
         ? t('app.status.wireless', { model })
         : t('app.status.wired', { model, firmware: `0x${(status.info?.firmwareVersion ?? 0).toString(16)}` })}
     </Badge>
+  )
+}
+
+/** While paused nothing may reach the keyboard, so its controls can't be used. */
+function Locked({ locked, children }: { locked: boolean; children: ReactNode }) {
+  return (
+    <fieldset disabled={locked} inert={locked} className="min-w-0 transition-opacity disabled:opacity-40">
+      {children}
+    </fieldset>
   )
 }
 
@@ -100,13 +110,17 @@ export function App() {
             </Card>
           )}
           <TabsContent value="lighting">
-            <LightingPage connected={connected} wireless={wireless} />
+            <Locked locked={!running}>
+              <LightingPage connected={connected} wireless={wireless} />
+            </Locked>
           </TabsContent>
           <TabsContent value="macros">
             <MacrosPage />
           </TabsContent>
           <TabsContent value="led-check">
-            <LayoutPage connected={connected} />
+            <Locked locked={!running}>
+              <LayoutPage connected={connected} />
+            </Locked>
           </TabsContent>
           <TabsContent value="settings">
             <SettingsPage status={status} />

@@ -80,6 +80,8 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lighting, updateLighting] = useLighting()
+  const { preferences } = useLayout()
+  const running = preferences.running
   const stored = useRef<OnboardConfig | null>(null)
   const writing = useRef(false)
   const queued = useRef<OnboardConfig | null>(null)
@@ -91,7 +93,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
 
   // Re-read the keyboard every second, so Fn changes made on it show up here.
   useEffect(() => {
-    if (!connected || wireless) return
+    if (!connected || wireless || !running) return
     let cancelled = false
     let reading = false
     const poll = async () => {
@@ -117,7 +119,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
       cancelled = true
       window.clearInterval(timer)
     }
-  }, [connected, wireless])
+  }, [connected, wireless, running])
 
   /** Writes `next` to the keyboard straight away; rapid changes are coalesced. */
   const apply = async (next: OnboardConfig) => {
