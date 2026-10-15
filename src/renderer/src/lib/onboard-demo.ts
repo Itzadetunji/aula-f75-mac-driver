@@ -38,6 +38,9 @@ const SNAKE_PATH = F75_ROWS.flatMap((row, y) => {
   return y % 2 ? leds.reverse() : leds
 })
 
+/** Rainbow wheel, Colorful waterfall, Blossoming, Rotating storm. */
+const HUE_MOTION = new Set([6, 16, 17, 18])
+
 const hash = (n: number) => {
   const s = Math.sin(n * 12.9898) * 43758.5453
   return s - Math.floor(s)
@@ -74,9 +77,9 @@ function sample(effectId: number, p: Pos, t: number, rate: number, presses: Pres
       for (const press of presses) {
         const origin = BY_LED.get(press.led)
         if (!origin || origin.y !== p.y) continue
-        const age = t - press.at - Math.abs(p.x - origin.x) / (rate * 14)
-        if (age < 0 || age > 0.6) continue
-        const l = 1 - age / 0.6
+        const age = t - press.at - Math.abs(p.x - origin.x) / (rate * 10)
+        if (age < 0 || age > 1.1) continue
+        const l = 1 - (age / 1.1) ** 2
         if (l > level) [level, hue] = [l, hash(press.led) * 360]
       }
       return { level, hue }
@@ -163,7 +166,7 @@ export function renderOnboardDemo(
   presses: Press[],
 ): RGB[] {
   if (!settings || settings.brightness === 0) return []
-  const v = 0.2 + 0.8 * (settings.brightness / MAX_BRIGHTNESS)
+  const v = 0.45 + 0.55 * (settings.brightness / MAX_BRIGHTNESS)
   const rate = 0.4 + settings.speed * 0.4
   const multicolor = !hasColor || settings.color === MULTICOLOR
   const base = ONBOARD_COLORS[settings.color]?.rgb ?? [255, 255, 255]
@@ -172,7 +175,10 @@ export function renderOnboardDemo(
   for (const p of POSITIONS) {
     const { level, hue } = sample(effectId, p, t, rate, presses)
     if (level <= 0) continue
-    const k = level * v
+    // Effects whose motion is all in the hue would freeze in a single colour, so
+    // the hue pattern becomes a brightness pattern instead.
+    const shade = !multicolor && HUE_MOTION.has(effectId) ? 0.15 + 0.85 * ((Math.cos((hue * Math.PI) / 180) + 1) / 2) : 1
+    const k = level * v * shade
     frame[p.led] = multicolor
       ? hsvToRgb(wrap(hue), 1, k)
       : [Math.round(base[0] * k), Math.round(base[1] * k), Math.round(base[2] * k)]

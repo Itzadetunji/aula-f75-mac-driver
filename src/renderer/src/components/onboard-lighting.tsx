@@ -28,7 +28,7 @@ import { cn, rgbToHex } from '@/lib/utils'
 const now = () => performance.now() / 1000
 
 /** Animated demo of the selected effect; reactive effects respond to clicks and real key presses. */
-function useEffectDemo(effect: OnboardEffect | undefined, settings: EffectSettings | undefined) {
+export function useEffectDemo(effect: OnboardEffect | undefined, settings: EffectSettings | undefined) {
   useAnimationTime()
   const { keys } = useLayout()
   const presses = useRef<Press[]>([])
@@ -182,13 +182,19 @@ export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs:
           <CardContent className="grid grid-cols-4 gap-2">
             {ONBOARD_EFFECTS.map((e) => {
               const isStored = stored?.effect === e.id
-              const locked = e.id === SELF_DEFINE_EFFECT && !isStored
+              const locked = (e.id === SELF_DEFINE_EFFECT || e.unsupported) && !isStored
               return (
                 <button
                   key={e.id}
                   type="button"
                   disabled={locked || !!busy}
-                  title={locked ? 'Per-key mode editing is coming next.' : undefined}
+                  title={
+                    e.unsupported
+                      ? "This effect stays dark on this keyboard's firmware."
+                      : locked
+                        ? 'Per-key mode editing is coming next.'
+                        : undefined
+                  }
                   onClick={() => setDraft((d) => d && { ...d, effect: e.id })}
                   className={cn(
                     'hover:bg-accent relative flex min-h-14 items-center justify-center rounded-lg border p-2 text-center text-xs font-medium transition-colors disabled:opacity-40',
@@ -212,6 +218,14 @@ export function OnboardLighting({ connected, tabs }: { connected: boolean; tabs:
             {effect && (
               <div className="bg-muted/50 flex flex-col gap-1.5 rounded-lg border p-3 text-sm">
                 <p>{effect.description}</p>
+                {effect.unsupported && (
+                  <p className="text-xs text-amber-400">
+                    Your keyboard's firmware doesn't seem to support this effect: it stays dark. Pick another one.
+                  </p>
+                )}
+                {!effect.unsupported && settings?.brightness === 0 && effect.id !== OFF_EFFECT && (
+                  <p className="text-xs text-amber-400">Brightness is 0, so the keyboard will be dark on this effect.</p>
+                )}
                 {effect.reactive && (
                   <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
                     <MousePointerClick className="size-3.5" /> Reacts to typing. Click keys above or type to try it.

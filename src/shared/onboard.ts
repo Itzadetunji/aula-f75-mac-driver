@@ -27,6 +27,8 @@ export interface OnboardEffect {
   hasColor: boolean
   /** Lights up in response to key presses. */
   reactive?: boolean
+  /** Stays dark on the F75 (model 0xC6) even with valid settings, including via Fn. */
+  unsupported?: boolean
 }
 
 export const ONBOARD_EFFECTS: OnboardEffect[] = [
@@ -69,6 +71,7 @@ export const ONBOARD_EFFECTS: OnboardEffect[] = [
   {
     id: 6,
     name: 'Rainbow wheel',
+    unsupported: true,
     description: 'A rainbow spins around the centre of the keyboard.',
     hasSpeed: true,
     hasColor: true,
@@ -128,6 +131,7 @@ export const ONBOARD_EFFECTS: OnboardEffect[] = [
   {
     id: 14,
     name: 'Retinue scanning',
+    unsupported: true,
     description: 'A bar of light sweeps left and right across the board.',
     hasSpeed: true,
     hasColor: true,
@@ -156,6 +160,7 @@ export const ONBOARD_EFFECTS: OnboardEffect[] = [
   {
     id: 18,
     name: 'Rotating storm',
+    unsupported: true,
     description: 'A spiral of colour swirls around the centre.',
     hasSpeed: true,
     hasColor: true,

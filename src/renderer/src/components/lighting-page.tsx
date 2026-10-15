@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState, type ComponentType, type MouseEve
 import { Cpu, HardDrive, MonitorSmartphone, Paintbrush, Power, Sparkles, Sun, Waves, Wind } from 'lucide-react'
 import { renderFrame } from '@shared/effects'
 import { F75_KEYS, type KeyDef } from '@shared/layout'
+import { decodeOnboard, ONBOARD_EFFECTS, type OnboardConfig } from '@shared/onboard'
 import type { EffectId, RGB } from '@shared/types'
 import { KeyboardView } from '@/components/keyboard-view'
-import { OnboardLighting } from '@/components/onboard-lighting'
+import { OnboardLighting, useEffectDemo } from '@/components/onboard-lighting'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -72,10 +73,22 @@ function LiveLighting({ connected, tabs }: { connected: boolean; tabs: ReactNode
   const t = useAnimationTime()
   const [brush, setBrush] = useState<RGB>([255, 0, 170])
 
+  const isHardware = lighting.effect === 'hardware'
+  const [stored, setStored] = useState<OnboardConfig | null>(null)
+  useEffect(() => {
+    if (!connected || !isHardware) return
+    window.f75
+      .readOnboard()
+      .then((bytes) => setStored(decodeOnboard(bytes)))
+      .catch(() => setStored(null))
+  }, [connected, isHardware])
+  const storedEffect = isHardware && stored ? ONBOARD_EFFECTS.find((e) => e.id === stored.effect) : undefined
+  const demo = useEffectDemo(storedEffect, stored?.settings[stored.effect])
+
   const preview = useMemo(() => {
-    if (lighting.effect === 'hardware') return []
+    if (isHardware) return []
     return renderFrame({ ...lighting, brightness: Math.max(lighting.brightness, 35) }, t)
-  }, [lighting, t])
+  }, [lighting, t, isHardware])
 
   const isCustom = lighting.effect === 'custom'
   const usesColor = lighting.effect === 'static' || lighting.effect === 'breathing'
@@ -149,9 +162,9 @@ function LiveLighting({ connected, tabs }: { connected: boolean; tabs: ReactNode
     <div className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-3">
         <KeyboardView
-          colors={preview}
+          colors={isHardware ? demo.frame : preview}
           selected={isCustom ? selected : undefined}
-          onKeyDown={isCustom ? onKeyDown : undefined}
+          onKeyDown={isCustom ? onKeyDown : demo.reactive ? (key) => demo.press(key.led) : undefined}
           onKeyEnter={isCustom ? onKeyEnter : undefined}
           onBackgroundDown={isCustom ? () => setSelected(new Set()) : undefined}
         />
@@ -189,9 +202,11 @@ function LiveLighting({ connected, tabs }: { connected: boolean; tabs: ReactNode
           </ul>
         ) : (
           <p className="text-muted-foreground text-xs">
-            {lighting.effect === 'hardware'
-              ? 'Showing nothing here: the keyboard is running its own built-in effect.'
-              : 'Live preview of what the keyboard is showing.'}
+            {!isHardware
+              ? 'Live preview of what the keyboard is showing.'
+              : storedEffect
+                ? `The keyboard is running its saved effect: ${storedEffect.name}.${demo.reactive ? ' Click keys or type to try it.' : ''}`
+                : 'The keyboard is running its own saved effect.'}
           </p>
         )}
       </div>
