@@ -74,7 +74,7 @@ enum F75Protocol {
     //
     // 20-byte output reports: `13 88 total seq len data[14] checksum`, where the
     // data is a stream of colour groups `R G B count led…`. Unlisted LEDs are off.
-    // `len` is 0x10 + data bytes in that report; a lone 0x23 report means "all off".
+    // `len` is 0x10 + data bytes in that report.
 
     static let dongleReportID: UInt8 = 0x13
     static let dongleCommand: UInt8 = 0x88
@@ -84,16 +84,6 @@ enum F75Protocol {
 
     private static func dongleChecksum(_ report: [UInt8]) -> UInt8 {
         UInt8(truncatingIfNeeded: report.prefix(19).reduce(0) { $0 + Int($1) })
-    }
-
-    static func dongleIdleReport() -> [UInt8] {
-        var r = [UInt8](repeating: 0, count: HIDKeyboard.dongleReportLength)
-        r[0] = dongleReportID
-        r[1] = dongleCommand
-        r[2] = 0x01
-        r[4] = 0x23
-        r[19] = dongleChecksum(r)
-        return r
     }
 
     /// Colours are rounded to a grid (coarser until the frame fits) so keys can
@@ -112,7 +102,8 @@ enum F75Protocol {
                 }
                 groups[q, default: []].append(UInt8(led))
             }
-            if groups.isEmpty { return [dongleIdleReport()] }
+            // A dark frame paints one key black: every key a frame leaves out goes dark.
+            if groups.isEmpty { groups[[0, 0, 0]] = [0] }
             data = []
             for (rgb, leds) in groups.sorted(by: { $0.value.count > $1.value.count }) {
                 data += rgb + [UInt8(leds.count)] + leds

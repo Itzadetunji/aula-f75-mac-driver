@@ -13,12 +13,14 @@ final class SpectrumAnalyzer {
     private let bandRanges: [Range<Int>]
     private var buffer: [Float] = []
     private var levels: [Float]
+    private var averageDB: [Float]
     private var peakDB: Float = -40
 
     init(bandCount: Int, sampleRate: Double) {
         fft = vDSP_create_fftsetup(log2n, FFTRadix(kFFTRadix2))!
         window = vDSP.window(ofType: Float.self, usingSequence: .hanningDenormalized, count: size, isHalfWindow: false)
         levels = [Float](repeating: 0, count: bandCount)
+        averageDB = [Float](repeating: -60, count: bandCount)
 
         let binHz = sampleRate / Double(size)
         let low = 40.0, high = 16_000.0
@@ -38,6 +40,13 @@ final class SpectrumAnalyzer {
         guard buffer.count >= size else { return nil }
         let frame = Array(buffer.suffix(size))
         buffer.removeAll(keepingCapacity: true)
+
+        // Below roughly -66 dBFS counts as silence; otherwise the auto-gain
+        // keeps turning up until it shows the noise floor.
+        if vDSP.rootMeanSquare(frame) < 0.0005 {
+            for i in levels.indices { levels[i] *= 0.45 }
+            return levels
+        }
 
         let windowed = vDSP.multiply(frame, window)
         var real = [Float](repeating: 0, count: size / 2)
@@ -63,11 +72,17 @@ final class SpectrumAnalyzer {
         }
 
         // Auto-gain: follow the loudest band quickly, let it fall back slowly.
-        peakDB = max(db.max() ?? peakDB, peakDB - 0.15)
-        let floorDB = peakDB - 45
+        peakDB = max(db.max() ?? peakDB, peakDB - 0.1)
+        let floorDB = peakDB - 32
         for (i, value) in db.enumerated() {
-            let target = max(0, min(1, (value - floorDB) / (peakDB - floorDB)))
-            levels[i] = target > levels[i] ? target : levels[i] * 0.82 + target * 0.18
+            // Steady loudness only fills the lower part of a bar (curved so it
+            // doesn't saturate); the rest comes from rising above the band's own
+            // recent average, so beats and changes jump while sustained sound sits low.
+            averageDB[i] = averageDB[i] * 0.94 + value * 0.06
+            let loudness = max(0, min(1, (value - floorDB) / (peakDB - floorDB)))
+            let punch = max(0, min(1, (value - averageDB[i]) / 10))
+            let target = min(1, 0.65 * pow(loudness, 2.2) + 0.4 * punch)
+            levels[i] = levels[i] * 0.45 + target * 0.55
         }
         return levels
     }
@@ -83,9 +98,21 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
     private var stream: SCStream?
     private var starting = false
     private var analyzer = SpectrumAnalyzer(bandCount: bandCount, sampleRate: Double(sampleRate))
+    private var lastBands = Date.distantPast
+    private var watchdog: Timer?
 
     var onBands: (([Float]) -> Void)?
     var onError: ((String) -> Void)?
+
+    /// macOS stops delivering audio buffers when nothing is playing, which would
+    /// freeze the last spectrum on the keyboard; report silence instead.
+    private func startWatchdog() {
+        watchdog?.invalidate()
+        watchdog = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
+            guard let self, Date().timeIntervalSince(self.lastBands) > 0.3 else { return }
+            self.onBands?([Float](repeating: 0, count: Self.bandCount))
+        }
+    }
 
     /// Call on the main thread.
     func start() {
@@ -112,6 +139,7 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
                 DispatchQueue.main.async {
                     self.starting = false
                     self.stream = stream
+                    self.startWatchdog()
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -124,6 +152,8 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
 
     /// Call on the main thread.
     func stop() {
+        watchdog?.invalidate()
+        watchdog = nil
         guard let stream else { return }
         self.stream = nil
         Task { try? await stream.stopCapture() }
@@ -139,12 +169,19 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
             samples = Array(UnsafeBufferPointer(start: data.bindMemory(to: Float.self, capacity: count), count: count))
         }
         guard let bands = analyzer.push(samples) else { return }
-        DispatchQueue.main.async { self.onBands?(bands) }
+        DispatchQueue.main.async {
+            self.lastBands = Date()
+            self.onBands?(bands)
+        }
     }
 
     func stream(_ stream: SCStream, didStopWithError error: Error) {
         DispatchQueue.main.async {
-            if self.stream === stream { self.stream = nil }
+            if self.stream === stream {
+                self.stream = nil
+                self.watchdog?.invalidate()
+                self.watchdog = nil
+            }
             self.onError?("Audio capture stopped: \(error.localizedDescription)")
         }
     }

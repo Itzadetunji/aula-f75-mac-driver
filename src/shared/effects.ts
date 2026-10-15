@@ -1,5 +1,8 @@
 import { F75_KEYS, LED_SLOTS } from './layout'
+import { renderMusic, type MusicMeter } from './music'
 import type { LightingState, RGB } from './types'
+
+export { MusicMeter, MUSIC_STYLES } from './music'
 
 export function hsvToRgb(h: number, s: number, v: number): RGB {
   const f = (n: number) => {
@@ -24,9 +27,9 @@ export const isAnimated = (state: LightingState) =>
 
 /**
  * Render one frame of colours (one entry per LED slot) at time `t` in seconds.
- * `bands` is the audio spectrum (one 0–1 level per LED column) for the music effect.
+ * `meter` carries the eased audio levels for the music effect.
  */
-export function renderFrame(state: LightingState, t: number, bands: number[] = []): RGB[] {
+export function renderFrame(state: LightingState, t: number, meter?: MusicMeter): RGB[] {
   const brightness = state.brightness / 100
   const rate = 0.1 + (state.speed / 100) * 1.9
   const frame: RGB[] = Array.from({ length: LED_SLOTS }, () => [0, 0, 0])
@@ -51,17 +54,10 @@ export function renderFrame(state: LightingState, t: number, bands: number[] = [
         frame[key.led] = hsvToRgb((hue + 360) % 360, 1, brightness)
       }
       break
-    case 'music': {
-      // Each LED column is a spectrum bar growing up from the bottom row; speed acts as sensitivity.
-      const gain = 0.6 + (state.speed / 100) * 1.4
-      for (const key of F75_KEYS) {
-        const column = Math.floor(key.led / 6)
-        const height = Math.min(1, (bands[column] ?? 0) * gain) * 6
-        const fill = Math.max(0, Math.min(1, height - (5 - (key.led % 6))))
-        if (fill > 0) frame[key.led] = hsvToRgb((column / 16) * 300 + t * 15, 1, brightness * fill)
-      }
+    case 'music':
+      // Speed acts as sensitivity.
+      if (meter) renderMusic(frame, state.musicStyle, t, meter, brightness, 0.5 + state.speed / 100)
       break
-    }
     case 'custom':
       for (const key of F75_KEYS) frame[key.led] = scale(state.perKey[key.led] ?? [0, 0, 0], brightness)
       break

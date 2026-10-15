@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type ComponentType, type MouseEvent, type ReactNode } from 'react'
 import { Cpu, HardDrive, MonitorSmartphone, Music, Paintbrush, Power, Sparkles, Sun, Waves, Wind } from 'lucide-react'
-import { renderFrame } from '@shared/effects'
+import { MusicMeter, renderFrame } from '@shared/effects'
 import { F75_KEYS, type KeyDef } from '@shared/layout'
 import { decodeOnboard, ONBOARD_EFFECTS, type OnboardConfig } from '@shared/onboard'
 import type { EffectId, RGB } from '@shared/types'
 import { KeyboardView } from '@/components/keyboard-view'
+import { MusicStylePicker } from '@/components/music-style-picker'
 import { OnboardLighting, useEffectDemo } from '@/components/onboard-lighting'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -88,10 +89,12 @@ function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wirel
 
   const isMusic = lighting.effect === 'music'
   const bands = useAudioBands(isMusic)
+  const meter = useRef(new MusicMeter())
 
   const preview = useMemo(() => {
     if (isHardware) return []
-    return renderFrame({ ...lighting, brightness: Math.max(lighting.brightness, 35) }, t, bands.current)
+    meter.current.update(bands.current, t)
+    return renderFrame({ ...lighting, brightness: Math.max(lighting.brightness, 35) }, t, meter.current)
   }, [lighting, t, isHardware])
 
   const isCustom = lighting.effect === 'custom'
@@ -280,6 +283,10 @@ function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wirel
               </div>
             )}
 
+            {isMusic && (
+              <MusicStylePicker value={lighting.musicStyle} onChange={(musicStyle) => update({ musicStyle })} />
+            )}
+
             {lighting.effect !== 'hardware' && lighting.effect !== 'off' && (
               <div className="flex flex-col gap-2">
                 <Label>Brightness · {lighting.brightness}%</Label>
@@ -298,8 +305,7 @@ function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wirel
 
             {isMusic && (
               <p className="text-muted-foreground text-xs">
-                Each column of keys is a bar of the spectrum, from bass on the left to treble on the right. The app
-                listens to your Mac's sound output only (no microphone, nothing is recorded). The first time, macOS asks
+                The app listens to your Mac's sound output only (no microphone, nothing is recorded). The first time, macOS asks
                 for Screen &amp; System Audio Recording permission.
               </p>
             )}

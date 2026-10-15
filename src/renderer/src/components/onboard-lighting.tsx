@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Loader2, MousePointerClick, Music, RefreshCw, Save, Undo2 } from 'lucide-react'
-import { renderFrame } from '@shared/effects'
+import { MusicMeter, renderFrame } from '@shared/effects'
 import {
   decodeOnboard,
   diffOnboard,
@@ -16,6 +16,7 @@ import {
   type OnboardEffect,
 } from '@shared/onboard'
 import { KeyboardView } from '@/components/keyboard-view'
+import { MusicStylePicker } from '@/components/music-style-picker'
 import { useAnimationTime, useAudioBands, useLighting } from '@/hooks/use-f75'
 import { useLayout } from '@/hooks/use-layout'
 import { keyIdFromCode, renderOnboardDemo, type Press } from '@/lib/onboard-demo'
@@ -141,13 +142,11 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
 
   const demo = useEffectDemo(effect, settings)
   const bands = useAudioBands(music && musicActive)
+  const meter = useRef(new MusicMeter())
   const t = now()
+  if (music) meter.current.update(bands.current.length > 0 ? bands.current : fakeBands(t), t)
   const frame = music
-    ? renderFrame(
-        { ...lighting, effect: 'music', brightness: Math.max(lighting.brightness, 35) },
-        t,
-        bands.current.length > 0 ? bands.current : fakeBands(t),
-      )
+    ? renderFrame({ ...lighting, effect: 'music', brightness: Math.max(lighting.brightness, 35) }, t, meter.current)
     : demo.frame
 
   const patchSettings = (patch: Partial<EffectSettings>) =>
@@ -294,10 +293,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
             {music && (
               <>
                 <div className="bg-muted/50 flex flex-col gap-1.5 rounded-lg border p-3 text-sm">
-                  <p>
-                    A spectrum that follows whatever your Mac is playing: each column of keys is a bar, bass on the left
-                    and treble on the right.
-                  </p>
+                  <p>Lights that follow whatever your Mac is playing. Pick a style below.</p>
                   <p className="text-muted-foreground text-xs">
                     The keyboard has no way to hear audio, so this can't live in its memory. The app keeps it running,
                     even with the window closed, and sends it wirelessly through the dongle when the cable is unplugged.
@@ -308,6 +304,10 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
                     stream.
                   </p>
                 </div>
+                <MusicStylePicker
+                  value={lighting.musicStyle}
+                  onChange={(musicStyle) => updateLighting({ musicStyle })}
+                />
                 <div className="flex flex-col gap-2">
                   <Label>Brightness · {lighting.brightness}%</Label>
                   <Slider

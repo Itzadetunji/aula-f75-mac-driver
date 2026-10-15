@@ -2,7 +2,7 @@ import { app, BrowserWindow, globalShortcut, ipcMain, shell, systemPreferences }
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { HelperClient } from './helper'
-import { isAnimated, renderFrame } from '@shared/effects'
+import { isAnimated, MusicMeter, MUSIC_STYLES, renderFrame } from '@shared/effects'
 import { LED_SLOTS } from '@shared/layout'
 import {
   DEFAULT_LIGHTING,
@@ -35,7 +35,11 @@ function writeJson(path: string, value: unknown) {
   writeFileSync(path, JSON.stringify(value, null, 2))
 }
 
-const loadLighting = () => readJson(lightingPath, DEFAULT_LIGHTING)
+function loadLighting(): LightingState {
+  const state = readJson(lightingPath, DEFAULT_LIGHTING)
+  if (!MUSIC_STYLES.some((s) => s.id === state.musicStyle)) state.musicStyle = DEFAULT_LIGHTING.musicStyle
+  return state
+}
 const saveLighting = (state: LightingState) => writeJson(lightingPath, state)
 
 let preferences: Preferences = readJson(preferencesPath, DEFAULT_PREFERENCES)
@@ -48,6 +52,7 @@ let animationTimer: NodeJS.Timeout | null = null
 let frameInFlight = false
 const startedAt = Date.now()
 let audioBands: number[] = []
+const musicMeter = new MusicMeter()
 let audioRunning = false
 
 let status: DeviceStatus = {
@@ -124,7 +129,11 @@ function applyLighting() {
     return
   }
 
-  const tick = () => void sendFrame(renderFrame(lighting, (Date.now() - startedAt) / 1000, audioBands))
+  const tick = () => {
+    const t = (Date.now() - startedAt) / 1000
+    musicMeter.update(audioBands, t)
+    void sendFrame(renderFrame(lighting, t, musicMeter))
+  }
   tick()
   // Faster than ~21 FPS starves the keyboard's key scanning (dropped/doubled keypresses);
   // the radio link needs about twice the gap.
