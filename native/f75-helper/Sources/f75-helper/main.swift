@@ -61,6 +61,13 @@ final class Server {
             stopDirect()
             return true
 
+        case "readConfig":
+            return ["bytes": try readConfig().map(Int.init)]
+
+        case "patchConfig":
+            guard let changes = params["changes"] as? [[Int]] else { throw RPCError("changes must be [[offset, value]]") }
+            return ["bytes": try patchConfig(changes).map(Int.init)]
+
         case "typeText":
             TextTyper.type(params["text"] as? String ?? "", pressEnter: params["pressEnter"] as? Bool ?? false)
             return true
@@ -73,6 +80,48 @@ final class Server {
     private func read(_ args: [UInt8]) throws -> [UInt8] {
         try keyboard.sendFeature(F75Protocol.readRequest(args))
         return try keyboard.getFeature(reportID: F75Protocol.reportID)
+    }
+
+    /// The firmware returns truncated, mostly-zero pages while busy, so a page is
+    /// only trusted once it carries the `5A A5` signature.
+    private func readConfig() throws -> [UInt8] {
+        for attempt in 0..<4 {
+            if attempt > 0 { usleep(70_000) }
+            try keyboard.sendFeature(F75Protocol.header(command: F75Protocol.configRead, length: F75Protocol.configLength))
+            usleep(20_000)
+            let reply = try keyboard.getFeature(reportID: F75Protocol.reportID)
+            guard reply.count >= F75Protocol.payloadOffset + F75Protocol.configLength,
+                  reply[1] == F75Protocol.configRead else { continue }
+            let page = Array(reply[F75Protocol.payloadOffset..<(F75Protocol.payloadOffset + F75Protocol.configLength)])
+            if F75Protocol.isValidConfig(page) { return page }
+        }
+        throw RPCError("The keyboard returned an invalid settings page. Try again.")
+    }
+
+    /// Read-modify-write: a fresh page is read and validated, only whitelisted
+    /// bytes are patched, and the result is read back to confirm it stuck.
+    private func patchConfig(_ changes: [[Int]]) throws -> [UInt8] {
+        var page = try readConfig()
+        for change in changes {
+            guard change.count == 2, (0...255).contains(change[1]) else { throw RPCError("Bad change \(change)") }
+            let (offset, value) = (change[0], UInt8(change[1]))
+            guard F75Protocol.isWritable(offset: offset, value: value) else {
+                throw RPCError("Refusing to write byte 0x\(String(offset, radix: 16)) of the settings page")
+            }
+            page[offset] = value
+        }
+        guard F75Protocol.isValidConfig(page) else { throw RPCError("Patched page lost its signature") }
+
+        stopDirect()
+        usleep(20_000)
+        try keyboard.sendFeature(F75Protocol.header(command: F75Protocol.configWrite, length: F75Protocol.configLength) + page)
+        usleep(100_000)
+
+        let stored = try readConfig()
+        for change in changes where stored[change[0]] != UInt8(change[1]) {
+            throw RPCError("The keyboard did not keep byte 0x\(String(change[0], radix: 16))")
+        }
+        return stored
     }
 
     private func startKeepalive() {

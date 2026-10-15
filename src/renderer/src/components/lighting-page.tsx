@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useRef, useState, type ComponentType, type MouseEvent, type ReactNode } from 'react'
-import { Cpu, Paintbrush, Power, Sparkles, Sun, Waves, Wind } from 'lucide-react'
+import { Cpu, HardDrive, MonitorSmartphone, Paintbrush, Power, Sparkles, Sun, Waves, Wind } from 'lucide-react'
 import { renderFrame } from '@shared/effects'
 import { F75_KEYS, type KeyDef } from '@shared/layout'
 import type { EffectId, RGB } from '@shared/types'
 import { KeyboardView } from '@/components/keyboard-view'
+import { OnboardLighting } from '@/components/onboard-lighting'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAnimationTime, useLighting } from '@/hooks/use-f75'
 import { cn, hexToRgb, rgbToHex } from '@/lib/utils'
 
@@ -42,6 +44,30 @@ function Kbd({ children }: { children: ReactNode }) {
 }
 
 export function LightingPage({ connected }: { connected: boolean }) {
+  const tabs = (
+    <TabsList>
+      <TabsTrigger value="live">
+        <MonitorSmartphone /> Live (app)
+      </TabsTrigger>
+      <TabsTrigger value="onboard">
+        <HardDrive /> Saved on keyboard
+      </TabsTrigger>
+    </TabsList>
+  )
+
+  return (
+    <Tabs defaultValue="live">
+      <TabsContent value="live">
+        <LiveLighting connected={connected} tabs={tabs} />
+      </TabsContent>
+      <TabsContent value="onboard">
+        <OnboardLighting connected={connected} tabs={tabs} />
+      </TabsContent>
+    </Tabs>
+  )
+}
+
+function LiveLighting({ connected, tabs }: { connected: boolean; tabs: ReactNode }) {
   const [lighting, update] = useLighting()
   const t = useAnimationTime()
   const [brush, setBrush] = useState<RGB>([255, 0, 170])
@@ -129,6 +155,7 @@ export function LightingPage({ connected }: { connected: boolean }) {
           onKeyEnter={isCustom ? onKeyEnter : undefined}
           onBackgroundDown={isCustom ? () => setSelected(new Set()) : undefined}
         />
+        {tabs}
         {isCustom && (
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground w-28 text-xs tabular-nums">

@@ -189,6 +189,19 @@ ipcMain.handle('f75:rawRead', async (_e, args: number[]) => {
   const r = await helper.call<{ raw: string }>('read', { args })
   return r.raw
 })
+ipcMain.handle('f75:readOnboard', async () => {
+  const r = await helper.call<{ bytes: number[] }>('readConfig')
+  return r.bytes
+})
+ipcMain.handle('f75:writeOnboard', async (_e, changes: [number, number][]) => {
+  if (lighting.effect !== 'hardware') {
+    lighting = { ...lighting, effect: 'hardware' }
+    saveLighting(lighting)
+    applyLighting()
+  }
+  const r = await helper.call<{ bytes: number[] }>('patchConfig', { changes })
+  return r.bytes
+})
 
 function createWindow() {
   window = new BrowserWindow({

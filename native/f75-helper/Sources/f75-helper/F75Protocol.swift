@@ -23,6 +23,34 @@ enum F75Protocol {
     static let infoArgs: [UInt8] = [0x01, 0x00, 0x01, 0x00, 0x06]
     static let modelIDOffset = 13
 
+    /// Header of a config-region transfer: command, parameter, 0, package count,
+    /// package index, little-endian payload length.
+    static func header(command: UInt8, length: Int) -> [UInt8] {
+        [reportID, command, 0x00, 0x00, 0x01, 0x00, UInt8(length & 0xFF), UInt8(length >> 8)]
+    }
+
+    /// Stored lighting/settings page: read with 0x84, written with 0x04.
+    /// 128 bytes, always ending in `5A A5`.
+    static let configRead: UInt8 = 0x84
+    static let configWrite: UInt8 = 0x04
+    static let configLength = 128
+    static let payloadOffset = 8
+    static let configPerKeyFlag = 0x09
+    static let configEffect = 0x0A
+    static let configEffectTable = 0x3A
+
+    static func isValidConfig(_ page: [UInt8]) -> Bool {
+        page.count == configLength && page[configLength - 2] == 0x5A && page[configLength - 1] == 0xA5
+    }
+
+    /// Only bytes whose meaning is confirmed may be changed: the active effect and
+    /// the per-effect brightness/speed/colour table. Byte 9 may only be cleared
+    /// (leaving per-key mode); setting it needs other bytes nobody has mapped.
+    static func isWritable(offset: Int, value: UInt8) -> Bool {
+        if offset == configPerKeyFlag { return value == 0 }
+        return offset == configEffect || (configEffectTable..<(configLength - 2)).contains(offset)
+    }
+
     /// Direct (host-driven) per-LED colour frame. The keyboard reverts to its
     /// stored effect if frames stop arriving for roughly a second.
     static let directLEDSlots = 126

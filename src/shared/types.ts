@@ -58,6 +58,13 @@ export interface F75Api {
   identifyLed(led: number | null): Promise<void>
   /** Read-only protocol probe: sends a 0x82 read request with the given argument bytes. */
   rawRead(args: number[]): Promise<string>
+  /** The 128-byte lighting settings page stored on the keyboard. */
+  readOnboard(): Promise<number[]>
+  /**
+   * Patch bytes of the stored settings page; returns the page as read back.
+   * Switches the app to On-board so it stops overriding the keyboard.
+   */
+  writeOnboard(changes: [number, number][]): Promise<number[]>
   getPreferences(): Promise<Preferences>
   setPreferences(patch: Partial<Preferences>): Promise<Preferences>
   getMacroErrors(): Promise<MacroErrors>
