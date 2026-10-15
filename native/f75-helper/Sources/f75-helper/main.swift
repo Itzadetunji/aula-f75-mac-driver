@@ -61,6 +61,10 @@ final class Server {
             stopDirect()
             return true
 
+        case "typeText":
+            TextTyper.type(params["text"] as? String ?? "", pressEnter: params["pressEnter"] as? Bool ?? false)
+            return true
+
         default:
             throw RPCError("Unknown method \(method)")
         }

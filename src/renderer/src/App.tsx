@@ -1,7 +1,8 @@
-import { Keyboard, Lightbulb, Microscope, ScanSearch } from 'lucide-react'
+import { Command, Keyboard, Lightbulb, Microscope, ScanSearch } from 'lucide-react'
 import type { DeviceStatus } from '@shared/types'
 import { LayoutPage } from '@/components/led-check-page'
 import { LightingPage } from '@/components/lighting-page'
+import { MacrosPage } from '@/components/macros-page'
 import { ProtocolLabPage } from '@/components/protocol-lab-page'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -41,6 +42,9 @@ export function App() {
           <TabsTrigger value="lighting">
             <Lightbulb /> Lighting
           </TabsTrigger>
+          <TabsTrigger value="macros">
+            <Command /> Macros
+          </TabsTrigger>
           <TabsTrigger value="led-check">
             <ScanSearch /> Layout
           </TabsTrigger>
@@ -63,6 +67,9 @@ export function App() {
           )}
           <TabsContent value="lighting">
             <LightingPage connected={connected} />
+          </TabsContent>
+          <TabsContent value="macros">
+            <MacrosPage />
           </TabsContent>
           <TabsContent value="led-check">
             <LayoutPage connected={connected} />

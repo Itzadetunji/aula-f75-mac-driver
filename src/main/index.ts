@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, shell, systemPreferences } from 'electron'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { HelperClient } from './helper'
@@ -10,6 +10,7 @@ import {
   type DeviceInfo,
   type DeviceStatus,
   type LightingState,
+  type MacroErrors,
   type Preferences,
   type RGB,
 } from '@shared/types'
@@ -143,12 +144,47 @@ ipcMain.handle('f75:identifyLed', (_e, led: number | null) => {
   identifyingLed = led
   applyLighting()
 })
+let macroErrors: MacroErrors = {}
+
+function runMacro(id: string) {
+  const macro = preferences.macros.find((m) => m.id === id)
+  if (!macro) return
+  if (!systemPreferences.isTrustedAccessibilityClient(false)) {
+    macroErrors = { ...macroErrors, [id]: 'Allow Accessibility access so macros can type for you.' }
+    window?.webContents.send('f75:macroErrors', macroErrors)
+    return
+  }
+  void helper.call('typeText', { text: macro.text, pressEnter: macro.pressEnter }).catch(() => {})
+}
+
+function registerMacros() {
+  globalShortcut.unregisterAll()
+  macroErrors = {}
+  for (const macro of preferences.macros) {
+    if (!macro.enabled || !macro.accelerator || !macro.text) continue
+    try {
+      if (!globalShortcut.register(macro.accelerator, () => runMacro(macro.id))) {
+        macroErrors[macro.id] = 'This shortcut is already used by macOS, another app, or another macro.'
+      }
+    } catch {
+      macroErrors[macro.id] = 'This shortcut is not supported.'
+    }
+  }
+  window?.webContents.send('f75:macroErrors', macroErrors)
+}
+
 ipcMain.handle('f75:getPreferences', () => preferences)
 ipcMain.handle('f75:setPreferences', (_e, patch: Partial<Preferences>) => {
   preferences = { ...preferences, ...patch }
   writeJson(preferencesPath, preferences)
+  if (patch.macros) registerMacros()
   return preferences
 })
+ipcMain.handle('f75:getMacroErrors', () => macroErrors)
+ipcMain.handle('f75:suspendMacros', () => globalShortcut.unregisterAll())
+ipcMain.handle('f75:resumeMacros', () => registerMacros())
+ipcMain.handle('f75:hasAccessibility', () => systemPreferences.isTrustedAccessibilityClient(false))
+ipcMain.handle('f75:requestAccessibility', () => systemPreferences.isTrustedAccessibilityClient(true))
 ipcMain.handle('f75:rawRead', async (_e, args: number[]) => {
   const r = await helper.call<{ raw: string }>('read', { args })
   return r.raw
@@ -180,6 +216,7 @@ function createWindow() {
 app.whenReady().then(() => {
   startHelper()
   createWindow()
+  registerMacros()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
@@ -189,6 +226,7 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {})
 
 app.on('before-quit', () => {
+  globalShortcut.unregisterAll()
   stopAnimation()
   helper.removeAllListeners('exit')
   helper.stop()

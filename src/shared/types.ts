@@ -1,16 +1,22 @@
 import { DEFAULT_RIGHT_COLUMN, type RightColumn } from './layout'
+import type { Macro } from './macros'
 
 export type RGB = [number, number, number]
 
 export interface Preferences {
   onboarded: boolean
   rightColumn: RightColumn
+  macros: Macro[]
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
   onboarded: false,
   rightColumn: DEFAULT_RIGHT_COLUMN,
+  macros: [],
 }
+
+/** Macro id -> reason it couldn't be registered. */
+export type MacroErrors = Record<string, string>
 
 export type EffectId = 'hardware' | 'off' | 'static' | 'breathing' | 'spectrum' | 'wave' | 'custom'
 
@@ -54,6 +60,13 @@ export interface F75Api {
   rawRead(args: number[]): Promise<string>
   getPreferences(): Promise<Preferences>
   setPreferences(patch: Partial<Preferences>): Promise<Preferences>
+  getMacroErrors(): Promise<MacroErrors>
+  onMacroErrors(cb: (errors: MacroErrors) => void): () => void
+  /** Temporarily unregisters macro shortcuts so a new one can be recorded. */
+  suspendMacros(): Promise<void>
+  resumeMacros(): Promise<void>
+  hasAccessibility(): Promise<boolean>
+  requestAccessibility(): Promise<boolean>
 }
 
 export const DEFAULT_LIGHTING: LightingState = {
