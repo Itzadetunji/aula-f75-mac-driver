@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ArrowLeft, ArrowRight, Keyboard, Paintbrush, Sparkles, Usb } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { LED_SLOTS, RIGHT_COLUMN_LEDS, RIGHT_COLUMN_PRESETS } from '@shared/layout'
 import type { RGB } from '@shared/types'
 import { KeyboardView } from '@/components/keyboard-view'
@@ -10,10 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useLayout } from '@/hooks/use-layout'
 import { cn } from '@/lib/utils'
 
+/** Text lives under `onboarding.features` in the locale files. */
 const FEATURES = [
-  { icon: Sparkles, title: 'Lighting effects', text: 'Static, breathing, spectrum and wave.' },
-  { icon: Paintbrush, title: 'Per-key RGB', text: 'Paint every key its own colour.' },
-  { icon: Usb, title: 'Native on macOS', text: 'Talks to the keyboard directly, no Windows needed.' },
+  { id: 'lighting', icon: Sparkles },
+  { id: 'perKey', icon: Paintbrush },
+  { id: 'native', icon: Usb },
 ]
 
 function previewColors(): RGB[] {
@@ -23,23 +25,22 @@ function previewColors(): RGB[] {
 }
 
 function Welcome() {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col items-center gap-8 text-center">
       <div className="bg-primary/10 flex size-16 items-center justify-center rounded-2xl border">
         <Keyboard className="size-8" />
       </div>
       <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-semibold tracking-tight">AULA F75 Mac Driver</h1>
-        <p className="text-muted-foreground mx-auto max-w-md">
-          Customise your AULA F75 on your Mac, the way the Windows app does. Let's get your keyboard set up.
-        </p>
+        <h1 className="text-3xl font-semibold tracking-tight">{t('app.title')}</h1>
+        <p className="text-muted-foreground mx-auto max-w-md">{t('onboarding.welcome.description')}</p>
       </div>
       <div className="grid w-full max-w-2xl grid-cols-3 gap-3">
-        {FEATURES.map(({ icon: Icon, title, text }) => (
-          <div key={title} className="bg-card flex flex-col items-center gap-2 rounded-xl border p-4">
+        {FEATURES.map(({ id, icon: Icon }) => (
+          <div key={id} className="bg-card flex flex-col items-center gap-2 rounded-xl border p-4">
             <Icon className="text-muted-foreground size-5" />
-            <div className="text-sm font-medium">{title}</div>
-            <div className="text-muted-foreground text-xs">{text}</div>
+            <div className="text-sm font-medium">{t(`onboarding.features.${id}.title`)}</div>
+            <div className="text-muted-foreground text-xs">{t(`onboarding.features.${id}.text`)}</div>
           </div>
         ))}
       </div>
@@ -48,26 +49,24 @@ function Welcome() {
 }
 
 function KeyboardType() {
+  const { t } = useTranslation()
   const { rightColumn, setRightColumn } = useLayout()
   const selected = RIGHT_COLUMN_PRESETS.findIndex((p) => p.order.join() === rightColumn.join())
 
   return (
     <div className="flex flex-col items-center gap-8">
       <div className="flex flex-col gap-3 text-center">
-        <h1 className="text-3xl font-semibold tracking-tight">Which F75 do you have?</h1>
-        <p className="text-muted-foreground mx-auto max-w-md">
-          F75 models differ in the keys on the right-hand side. Choose the one that matches the highlighted keys on
-          your keyboard, from top to bottom.
-        </p>
+        <h1 className="text-3xl font-semibold tracking-tight">{t('onboarding.keyboardType.title')}</h1>
+        <p className="text-muted-foreground mx-auto max-w-md">{t('onboarding.keyboardType.description')}</p>
       </div>
       <div className="flex w-full max-w-sm flex-col gap-2">
-        <Label>Right-side keys</Label>
+        <Label>{t('onboarding.keyboardType.label')}</Label>
         <Select
           value={selected === -1 ? undefined : String(selected)}
           onValueChange={(v) => setRightColumn(RIGHT_COLUMN_PRESETS[Number(v)].order)}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Custom layout" />
+            <SelectValue placeholder={t('onboarding.keyboardType.custom')} />
           </SelectTrigger>
           <SelectContent>
             {RIGHT_COLUMN_PRESETS.map((preset, i) => (
@@ -79,7 +78,7 @@ function KeyboardType() {
         </Select>
       </div>
       <KeyboardView colors={previewColors()} />
-      <p className="text-muted-foreground text-xs">You can change this later in the Layout tab.</p>
+      <p className="text-muted-foreground text-xs">{t('onboarding.keyboardType.later')}</p>
     </div>
   )
 }
@@ -87,6 +86,7 @@ function KeyboardType() {
 const STEPS = [Welcome, KeyboardType]
 
 export function Onboarding({ onDone }: { onDone: () => void }) {
+  const { t } = useTranslation()
   const [step, setStep] = useState(0)
   const isLast = step === STEPS.length - 1
 
@@ -115,7 +115,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       </ScrollArea>
       <div className="flex items-center justify-between px-8 py-5">
         <Button variant="ghost" onClick={() => setStep((s) => s - 1)} className={cn(step === 0 && 'invisible')}>
-          <ArrowLeft /> Back
+          <ArrowLeft /> {t('onboarding.back')}
         </Button>
         <div className="flex gap-1.5">
           {STEPS.map((_, i) => (
@@ -126,11 +126,11 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           ))}
         </div>
         <Button onClick={() => (isLast ? onDone() : setStep((s) => s + 1))}>
-          {isLast ? 'Get started' : 'Next'} <ArrowRight />
+          {t(isLast ? 'onboarding.start' : 'onboarding.next')} <ArrowRight />
         </Button>
       </div>
       <footer className="text-muted-foreground border-t py-3 text-center text-xs">
-        Built by Adetunji with love ❤️ (
+        {t('onboarding.credit')} (
         <a href="https://itzadetunji.com" target="_blank" rel="noreferrer" className="hover:text-foreground underline">
           itzadetunji.com
         </a>

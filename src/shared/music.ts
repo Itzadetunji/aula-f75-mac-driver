@@ -5,15 +5,8 @@ import type { MusicStyle, RGB } from './types'
 const COLUMNS = 16
 const ROWS = 6
 
-export const MUSIC_STYLES: { id: MusicStyle; label: string; description: string }[] = [
-  {
-    id: 'horizontal',
-    label: 'Horizontal',
-    description: 'Each row is a band filling left to right: bass on the bottom row, treble on the top.',
-  },
-  { id: 'heat', label: 'Heat bars', description: 'Bars from the bottom, green at the base through yellow to red at the top.' },
-  { id: 'rainbow', label: 'Rainbow bars', description: 'Bars from the bottom, each column its own colour of the rainbow.' },
-]
+/** Labels live under `musicStyles` in the locale files. */
+export const MUSIC_STYLES: MusicStyle[] = ['horizontal', 'heat', 'rainbow']
 
 const HEAT_ROWS: RGB[] = [
   [0, 255, 40],

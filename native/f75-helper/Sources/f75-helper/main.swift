@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 
 // Line-delimited JSON over stdio.
@@ -20,6 +21,7 @@ func hex(_ bytes: [UInt8]) -> String {
 final class Server {
     let keyboard = HIDKeyboard()
     let audio = AudioSpectrum()
+    let menu = StatusMenu()
     private var directColors: [[UInt8]]?
     private var lastFrameSent = Date.distantPast
     private var keepalive: Timer?
@@ -39,6 +41,9 @@ final class Server {
         }
         audio.onError = { message in
             emit(["event": "audioError", "message": message])
+        }
+        menu.onSelect = { id in
+            emit(["event": "menu", "id": id])
         }
     }
 
@@ -89,6 +94,10 @@ final class Server {
 
         case "stopAudio":
             audio.stop()
+            return true
+
+        case "setMenu":
+            menu.update(params)
             return true
 
         case "typeText":
@@ -231,4 +240,6 @@ if CommandLine.arguments.contains("--probe") {
     }
 }
 
-RunLoop.main.run()
+// A menu-bar-only app: no Dock icon or windows of its own.
+NSApplication.shared.setActivationPolicy(.accessory)
+NSApplication.shared.run()

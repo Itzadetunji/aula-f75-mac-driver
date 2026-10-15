@@ -43,11 +43,23 @@ enum F75Protocol {
         page.count == configLength && page[configLength - 2] == 0x5A && page[configLength - 1] == 0xA5
     }
 
-    /// Only bytes whose meaning is confirmed may be changed: the active effect and
-    /// the per-effect brightness/speed/colour table. Byte 9 may only be cleared
-    /// (leaving per-key mode); setting it needs other bytes nobody has mapped.
+    /// Idle time before the backlight sleeps, in 30-second units (confirmed on an
+    /// F75: 0x0A = 5 minutes). Only the values the vendor driver offers, plus 0 = never.
+    static let configSleep = 0x18
+    static let sleepValues: Set<UInt8> = [0, 2, 3, 4, 6, 8, 10, 20, 30, 40]
+
+    /// Key debounce, 0–4 meaning 1–5 ms. The research disagrees on the offset, so
+    /// it stays unwritable (nil) until it is checked on a real keyboard.
+    static let configDebounce: Int? = nil
+
+    /// Only bytes whose meaning is confirmed may be changed: the active effect,
+    /// the per-effect brightness/speed/colour table and the sleep timer. Byte 9
+    /// may only be cleared (leaving per-key mode); setting it needs other bytes
+    /// nobody has mapped.
     static func isWritable(offset: Int, value: UInt8) -> Bool {
         if offset == configPerKeyFlag { return value == 0 }
+        if offset == configSleep { return sleepValues.contains(value) }
+        if let debounce = configDebounce, offset == debounce { return value <= 4 }
         return offset == configEffect || (configEffectTable..<(configLength - 2)).contains(offset)
     }
 

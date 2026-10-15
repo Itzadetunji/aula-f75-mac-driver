@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -45,6 +46,7 @@ function HexDump({ raw, previous }: { raw: string; previous?: string }) {
 }
 
 export function ProtocolLabPage({ connected }: { connected: boolean }) {
+  const { t } = useTranslation()
   const [args, setArgs] = useState('01 00 01 00 06')
   const [captures, setCaptures] = useState<Capture[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -63,17 +65,15 @@ export function ProtocolLabPage({ connected }: { connected: boolean }) {
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader>
-          <CardTitle>Protocol lab (read-only)</CardTitle>
+          <CardTitle>{t('lab.title')}</CardTitle>
           <CardDescription>
-            Sends a <code className="font-mono">06 82 …</code> read request and shows the reply. Change a setting with
-            the keyboard's Fn shortcuts, read again, and changed bytes are highlighted. This is how on-board effects,
-            key maps and macros get mapped out. Nothing here writes to the keyboard.
+            <Trans i18nKey="lab.description" components={{ code: <code className="font-mono" /> }} />
           </CardDescription>
         </CardHeader>
         <CardContent className="flex gap-2">
-          <Input value={args} onChange={(e) => setArgs(e.target.value)} className="font-mono" placeholder="hex bytes" />
+          <Input value={args} onChange={(e) => setArgs(e.target.value)} className="font-mono" placeholder={t('lab.placeholder')} />
           <Button disabled={!connected} onClick={read}>
-            Read
+            {t('lab.read')}
           </Button>
         </CardContent>
         {error && <CardContent className="text-destructive text-sm">{error}</CardContent>}

@@ -1,0 +1,335 @@
+{
+  "app": {
+    "title": "AULA F75 Mac Driver",
+    "tabs": {
+      "lighting": "Lighting",
+      "macros": "Macros",
+      "layout": "Layout",
+      "settings": "Settings",
+      "lab": "Protocol lab"
+    },
+    "status": {
+      "helperOffline": "Helper offline",
+      "notConnected": "Keyboard not connected",
+      "unknownModel": "F75 (model {{id}})",
+      "wireless": "{{model}} · 2.4 GHz dongle",
+      "wired": "{{model}} · fw {{firmware}}"
+    },
+    "problem": "Problem talking to the keyboard",
+    "paused": {
+      "title": "Paused",
+      "description": "The app's lighting and macros are off, so the keyboard shows its own saved effect.",
+      "resume": "Resume",
+      "pause": "Pause"
+    }
+  },
+
+  "common": {
+    "brightness": "Brightness · {{value}}",
+    "speed": "Speed · {{value}}",
+    "sensitivity": "Sensitivity · {{value}}",
+    "colour": "Colour",
+    "colourNamed": "Colour · {{name}}",
+    "style": "Style",
+    "settings": "Settings",
+    "noSettings": "No settings for this effect.",
+    "multicolour": "Multicolour"
+  },
+
+  "effects": {
+    "hardware": { "label": "On-board", "hint": "The keyboard's own saved effect (Fn shortcuts)." },
+    "static": { "label": "Static", "hint": "One colour on every key." },
+    "breathing": { "label": "Breathing", "hint": "Fades the colour in and out." },
+    "spectrum": { "label": "Spectrum", "hint": "Cycles the whole board through the rainbow." },
+    "wave": { "label": "Wave", "hint": "Rainbow sweeping across the board." },
+    "music": { "label": "Music", "hint": "A spectrum that dances to whatever your Mac is playing." },
+    "custom": { "label": "Per-key", "hint": "Paint individual keys." },
+    "off": { "label": "Off", "hint": "All LEDs off." }
+  },
+
+  "musicStyles": {
+    "horizontal": {
+      "label": "Horizontal",
+      "description": "Each row is a band filling left to right: bass on the bottom row, treble on the top."
+    },
+    "heat": {
+      "label": "Heat bars",
+      "description": "Bars from the bottom, green at the base through yellow to red at the top."
+    },
+    "rainbow": {
+      "label": "Rainbow bars",
+      "description": "Bars from the bottom, each column its own colour of the rainbow."
+    }
+  },
+
+  "lighting": {
+    "tabs": {
+      "live": "Live (app)",
+      "onboard": "Saved on keyboard"
+    },
+    "selection": {
+      "none": "No keys selected",
+      "count_one": "{{count}} key selected",
+      "count_other": "{{count}} keys selected",
+      "selectAll": "Select all",
+      "deselect": "Deselect",
+      "applyColour": "Apply colour",
+      "turnOff": "Turn off"
+    },
+    "help": {
+      "click": "Click a key to select it, click it again to deselect",
+      "multi": "Hold <kbd>⇧ Shift</kbd> or <kbd>⌘ Command</kbd> and click to select multiple keys",
+      "drag": "Drag across keys to select a group",
+      "all": "<kbd>⌘ A</kbd> selects all · <kbd>Esc</kbd> or click the board's edge to deselect all",
+      "thenPick": "Then pick a colour on the right to light the selected keys"
+    },
+    "preview": {
+      "music": "Play something on your Mac and the bars follow the music.",
+      "live": "Live preview of what the keyboard is showing.",
+      "storedEffect": "The keyboard is running its saved effect: {{name}}.",
+      "tryIt": "Click keys or type to try it.",
+      "ownEffect": "The keyboard is running its own saved effect."
+    },
+    "effectCard": {
+      "title": "Effect",
+      "description": "Effects other than On-board are driven by this app and stay active while it is running (even with the window closed).",
+      "wireless": "Over the 2.4 GHz dongle, colours are rounded a little to fit the radio link, and the keyboard must be on Fixed on (animated effects paint over the app's lighting)."
+    },
+    "keyColour": "Key colour",
+    "musicPrivacy": "The app listens to your Mac's sound output only (no microphone, nothing is recorded). The first time, macOS asks for Screen & System Audio Recording permission.",
+    "fillAll": "Fill all",
+    "clearAll": "Clear all"
+  },
+
+  "onboard": {
+    "connectCable": "Connect the keyboard with the USB cable to read its saved lighting.",
+    "reading": "Reading the lighting saved on the keyboard…",
+    "retrying": "{{error}} Retrying…",
+    "preview": {
+      "musicLive": "Live: play something on your Mac and the keyboard follows it.",
+      "musicDemo": "Demo of the Music effect. Click the Music tile to stream it to the keyboard.",
+      "reactiveDemo": "Demo: click keys or type to try it out.",
+      "demo": "Demo of the effect, roughly how the keyboard shows it.",
+      "runsItself": "The keyboard runs this itself, even when it isn't connected to this Mac."
+    },
+    "appOverrides": "The app's live lighting is covering the keyboard's own effect right now. Picking an effect here switches the app to On-board so you can see the result.",
+    "savedEffect": {
+      "title": "Saved effect",
+      "description": "Stored on the keyboard, the same list you cycle through with Fn shortcuts. Changes apply straight away."
+    },
+    "unsupportedTitle": "This effect stays dark on this keyboard's firmware.",
+    "perKeyComing": "Per-key mode editing is coming next.",
+    "savedDot": "Saved on the keyboard",
+    "savedDotStreaming": "Saved on the keyboard (shown when the app stops streaming)",
+    "wirelessNote": "Connected through the 2.4 GHz dongle, which can't read or change the effects stored on the keyboard. Plug in the USB cable to edit them.",
+    "musicTileTitle": "Made by this app and streamed to the keyboard",
+    "effectFallback": "Effect {{id}}",
+    "musicDescription": "Streamed by this app over the USB cable or the 2.4 GHz dongle.",
+    "settingsDescription": "The keyboard remembers these separately for every effect.",
+    "musicIntro": "Lights that follow whatever your Mac is playing. Pick a style below.",
+    "musicExplainer": "The keyboard has no way to hear audio, so this can't live in its memory. The app keeps it running, even with the window closed, and sends it wirelessly through the dongle when the cable is unplugged. When the app quits, the keyboard goes back to the effect saved on it.",
+    "musicDongleWarning": "For the dongle, the keyboard must be on Fixed on: animated effects repaint the keys and hide the stream.",
+    "unsupported": "Your keyboard's firmware doesn't seem to support this effect: it stays dark. Pick another one.",
+    "brightnessZero": "Brightness is 0, so the keyboard will be dark on this effect.",
+    "reactive": "Reacts to typing. Click keys above or type to try it.",
+    "selfDefine": "The keyboard is showing its saved per-key colours. Editing them here is coming next.",
+    "saving": "Saving to the keyboard…"
+  },
+
+  "onboardEffects": {
+    "0": { "name": "Off", "description": "All lighting is turned off." },
+    "1": { "name": "Fixed on", "description": "Every key stays lit in one steady colour." },
+    "2": { "name": "Respire", "description": "The whole board slowly fades in and out of the chosen colour, like breathing." },
+    "3": { "name": "Rainbow", "description": "The whole board smoothly changes from one colour to the next, without fading out." },
+    "4": { "name": "Flash away", "description": "Pressing a key sends light along its row in both directions, fading out as it goes." },
+    "5": { "name": "Raindrops", "description": "Random keys light up and fade, like drops of rain landing on the board." },
+    "6": { "name": "Rainbow wheel", "description": "A rainbow spins around the centre of the keyboard." },
+    "7": { "name": "Ripples shining", "description": "Pressing a key sends a ring of light rippling outwards from it." },
+    "8": { "name": "Stars twinkle", "description": "Keys twinkle on and off at random, like stars." },
+    "9": { "name": "Shadow disappear", "description": "The board stays lit; a key you press goes dark and slowly lights back up." },
+    "10": { "name": "Retro snake", "description": "A short trail of light snakes back and forth across the rows." },
+    "11": { "name": "Neon stream", "description": "Bands of colour stream across the board from side to side." },
+    "12": { "name": "Reaction", "description": "Only the keys you press light up, then fade out." },
+    "13": { "name": "Sine wave", "description": "A wave of brightness rolls across the board." },
+    "14": { "name": "Retinue scanning", "description": "A bar of light sweeps left and right across the board." },
+    "15": { "name": "Rotating windmill", "description": "Coloured blades rotate around the centre like a windmill." },
+    "16": { "name": "Colorful waterfall", "description": "Colours pour down the board from the top row to the bottom." },
+    "17": { "name": "Blossoming", "description": "Colour blooms outwards from the middle of the keyboard." },
+    "18": { "name": "Rotating storm", "description": "A spiral of colour swirls around the centre." },
+    "21": { "name": "Self-define", "description": "Shows the per-key colours saved on the keyboard." }
+  },
+
+  "onboardColors": {
+    "red": "Red",
+    "green": "Green",
+    "blue": "Blue",
+    "yellow": "Yellow",
+    "magenta": "Magenta",
+    "cyan": "Cyan",
+    "white": "White"
+  },
+
+  "macros": {
+    "title": "Macros",
+    "description": "Press a shortcut anywhere on your Mac and the app types the text for you. Shortcuts must start with ⌘, ⌥, ⌃ or ⇧. Fn can't be used: the F75 handles it internally and never sends it to macOS.",
+    "import": "Import",
+    "export": "Export",
+    "new": "New macro",
+    "defaultName": "Macro {{number}}",
+    "namePlaceholder": "Macro name",
+    "enabled": "Enabled",
+    "delete": "Delete macro",
+    "shortcut": "Shortcut",
+    "typesThis": "Types this",
+    "textPlaceholder": "e.g. adetunji@example.com",
+    "pressEnter": "Press Return after typing",
+    "recordPrompt": "Press ⌘, ⌥, ⌃ or ⇧ + a key… (Esc to cancel)",
+    "recordIdle": "Click to record shortcut",
+    "accessibility": {
+      "title": "Accessibility access needed",
+      "description": "macOS only lets apps type into other apps once you allow it in System Settings → Privacy & Security → Accessibility.",
+      "allow": "Allow access"
+    },
+    "empty": {
+      "title": "No macros yet",
+      "description": "Create one to type an email, a signature or a code snippet with one shortcut, or import a .txt or .json file."
+    },
+    "footer": "Macros run while this app is open, even with its window closed.",
+    "pausedFooter": "Macros are paused. Resume the app to use them again.",
+    "imported_one": "Imported {{count}} macro.",
+    "imported_other": "Imported {{count}} macros.",
+    "clashes_one": "{{count}} shortcut was already in use, so record a new one.",
+    "clashes_other": "{{count}} shortcuts were already in use, so record new ones.",
+    "errors": {
+      "accessibility": "Allow Accessibility access so macros can type for you.",
+      "taken": "This shortcut is already used by macOS, another app, or another macro.",
+      "unsupported": "This shortcut is not supported.",
+      "needsModifier": "Start the shortcut with ⌘, ⌥, ⌃ or ⇧.",
+      "shiftOnly": "⇧ on its own only works with keys like F1–F12; ⇧ + a letter is how you type capitals."
+    },
+    "fileErrors": {
+      "empty": "{{file}} is empty.",
+      "invalidJson": "{{file}} isn't valid JSON.",
+      "noMacros": "{{file}} has no macros in it.",
+      "noText": "{{file}} has no macros with text in it."
+    }
+  },
+
+  "layout": {
+    "tabs": {
+      "ledMap": "LED map check",
+      "rightSide": "Right-side keys"
+    },
+    "ledMap": {
+      "title": "LED map check",
+      "byKey": "By key",
+      "byIndex": "By LED index",
+      "keysDescription": "Only one key is lit on your keyboard. If it isn't the highlighted key here, note both names so the layout can be corrected.",
+      "rawDescription": "Steps through every LED index the keyboard accepts. Note which physical key lights up for indexes that show \"unmapped\".",
+      "space": "Space",
+      "position": "LED #{{led}} · key {{index}}/{{total}}",
+      "mappedTo": "mapped to {{key}}",
+      "unmapped": "unmapped"
+    },
+    "rightColumn": {
+      "title": "Right-side keys",
+      "description": "F75 variants label the highlighted column differently. Pick the order printed on your keycaps, top to bottom.",
+      "row": "Row {{number}}",
+      "runSetup": "Run setup again"
+    }
+  },
+
+  "onboarding": {
+    "welcome": {
+      "description": "Customise your AULA F75 on your Mac, the way the Windows app does. Let's get your keyboard set up."
+    },
+    "features": {
+      "lighting": { "title": "Lighting effects", "text": "Static, breathing, spectrum and wave." },
+      "perKey": { "title": "Per-key RGB", "text": "Paint every key its own colour." },
+      "native": { "title": "Native on macOS", "text": "Talks to the keyboard directly, no Windows needed." }
+    },
+    "keyboardType": {
+      "title": "Which F75 do you have?",
+      "description": "F75 models differ in the keys on the right-hand side. Choose the one that matches the highlighted keys on your keyboard, from top to bottom.",
+      "label": "Right-side keys",
+      "custom": "Custom layout",
+      "later": "You can change this later in the Layout tab."
+    },
+    "back": "Back",
+    "next": "Next",
+    "start": "Get started",
+    "credit": "Built by Adetunji with love ❤️"
+  },
+
+  "lab": {
+    "title": "Protocol lab (read-only)",
+    "description": "Sends a <code>06 82 …</code> read request and shows the reply. Change a setting with the keyboard's Fn shortcuts, read again, and changed bytes are highlighted. This is how on-board effects, key maps and macros get mapped out. Nothing here writes to the keyboard.",
+    "placeholder": "hex bytes",
+    "read": "Read"
+  },
+
+  "settings": {
+    "title": "Settings",
+    "device": {
+      "title": "Device",
+      "description": "The keyboard this app is talking to.",
+      "model": "Model",
+      "firmware": "Firmware version",
+      "firmwareDongle": "{{version}} (reported by the dongle)",
+      "connection": "Connection",
+      "wired": "USB cable",
+      "wireless": "2.4 GHz dongle",
+      "software": "App version",
+      "notConnected": "Not connected",
+      "unknown": "Unknown"
+    },
+    "language": {
+      "title": "Language",
+      "description": "The language of the app and the menu bar."
+    },
+    "app": {
+      "title": "App",
+      "running": "Running",
+      "runningDescription": "Turn off to pause the app's lighting and macros. The keyboard shows its own saved effect until you turn it back on.",
+      "close": "When you close the window",
+      "closeMenubar": "Keep running in the menu bar",
+      "closeQuit": "Quit the app",
+      "closeDescription": "In the menu bar, live lighting, Music and macros keep working with the window closed."
+    },
+    "keyboard": {
+      "title": "Keyboard",
+      "description": "Saved on the keyboard itself.",
+      "cableOnly": "Connect the USB cable to change these. Over the 2.4 GHz dongle, saving settings is unsafe, so the app doesn't allow it.",
+      "notConnected": "Connect the keyboard with the USB cable to change these.",
+      "reading": "Reading the keyboard's settings…",
+      "saving": "Saving to the keyboard…",
+      "unexpected": "The keyboard reported a value the app doesn't recognise, so this setting is read-only."
+    },
+    "sleep": {
+      "title": "Sleep",
+      "description": "Turn the backlight off after the keyboard has been idle for a while.",
+      "after": "Sleep after · {{duration}}",
+      "seconds_one": "{{count}} second",
+      "seconds_other": "{{count}} seconds",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes"
+    },
+    "debounce": {
+      "description": "How long the keyboard waits for a key's contacts to settle. Raise it if a key types twice; lower it for slightly faster input.",
+      "value": "Debounce · {{value}} ms",
+      "default": "Default ({{value}} ms)",
+      "notVerified": "Not available yet: where this keyboard stores debounce hasn't been confirmed, so the app won't write it."
+    }
+  },
+
+  "menu": {
+    "connectedWired": "AULA F75 · USB cable",
+    "connectedWireless": "AULA F75 · 2.4 GHz dongle",
+    "disconnected": "AULA F75 · Not connected",
+    "pause": "Pause lighting and macros",
+    "resume": "Resume lighting and macros",
+    "lighting": "Lighting",
+    "open": "Open AULA F75 Mac Driver",
+    "quit": "Quit"
+  }
+}

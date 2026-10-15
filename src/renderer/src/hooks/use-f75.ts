@@ -17,6 +17,7 @@ export function useLighting() {
 
   useEffect(() => {
     void window.f75.getLighting().then(setLocal)
+    return window.f75.onLighting(setLocal)
   }, [])
 
   // Sliders and colour pickers fire continuously; coalesce writes to the main process.

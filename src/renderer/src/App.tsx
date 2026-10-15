@@ -1,36 +1,43 @@
-import { Command, Keyboard, Lightbulb, Microscope, ScanSearch } from 'lucide-react'
+import { Command, Keyboard, Lightbulb, Microscope, Pause, Play, ScanSearch, Settings } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { DeviceStatus } from '@shared/types'
 import { LayoutPage } from '@/components/led-check-page'
 import { LightingPage } from '@/components/lighting-page'
 import { MacrosPage } from '@/components/macros-page'
 import { ProtocolLabPage } from '@/components/protocol-lab-page'
+import { SettingsPage } from '@/components/settings-page'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Onboarding } from '@/components/onboarding'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useDeviceStatus } from '@/hooks/use-f75'
 import { usePreferences } from '@/hooks/use-layout'
+import { modelName } from '@/lib/utils'
 
 function StatusBadge({ status }: { status: DeviceStatus | null }) {
-  if (!status?.helperRunning) return <Badge variant="destructive">Helper offline</Badge>
-  if (!status.connected) return <Badge variant="secondary">Keyboard not connected</Badge>
-  const model = status.modelName ?? `F75 (model 0x${(status.modelId ?? 0).toString(16).toUpperCase()})`
+  const { t } = useTranslation()
+  if (!status?.helperRunning) return <Badge variant="destructive">{t('app.status.helperOffline')}</Badge>
+  if (!status.connected) return <Badge variant="secondary">{t('app.status.notConnected')}</Badge>
+  const model = modelName(status, t)
   return (
     <Badge className="bg-emerald-500/15 text-emerald-300">
       <span className="size-1.5 rounded-full bg-emerald-400" />
       {status.info?.transport === 'wireless'
-        ? `${model} · 2.4 GHz dongle`
-        : `${model} · fw 0x${(status.info?.firmwareVersion ?? 0).toString(16)}`}
+        ? t('app.status.wireless', { model })
+        : t('app.status.wired', { model, firmware: `0x${(status.info?.firmwareVersion ?? 0).toString(16)}` })}
     </Badge>
   )
 }
 
 export function App() {
+  const { t } = useTranslation()
   const status = useDeviceStatus()
   const { preferences, updatePreferences } = usePreferences()
   const connected = !!status?.connected
   const wireless = connected && status?.info?.transport === 'wireless'
+  const running = preferences.running
 
   if (!preferences.onboarded) return <Onboarding onDone={() => updatePreferences({ onboarded: true })} />
 
@@ -39,33 +46,55 @@ export function App() {
       <header className="drag-region flex h-14 shrink-0 items-center justify-between border-b pr-4 pl-24">
         <div className="flex items-center gap-2 font-semibold">
           <Keyboard className="size-5" />
-          AULA F75 Mac Driver
+          {t('app.title')}
         </div>
         <TabsList>
           <TabsTrigger value="lighting">
-            <Lightbulb /> Lighting
+            <Lightbulb /> {t('app.tabs.lighting')}
           </TabsTrigger>
           <TabsTrigger value="macros">
-            <Command /> Macros
+            <Command /> {t('app.tabs.macros')}
           </TabsTrigger>
           <TabsTrigger value="led-check">
-            <ScanSearch /> Layout
+            <ScanSearch /> {t('app.tabs.layout')}
+          </TabsTrigger>
+          <TabsTrigger value="settings">
+            <Settings /> {t('app.tabs.settings')}
           </TabsTrigger>
           {import.meta.env.DEV && (
             <TabsTrigger value="lab">
-              <Microscope /> Protocol lab
+              <Microscope /> {t('app.tabs.lab')}
             </TabsTrigger>
           )}
         </TabsList>
-        <StatusBadge status={status} />
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => updatePreferences({ running: !running })}>
+            {running ? <Pause /> : <Play />}
+            {running ? t('app.paused.pause') : t('app.paused.resume')}
+          </Button>
+          <StatusBadge status={status} />
+        </div>
       </header>
 
       <ScrollArea className="min-h-0 flex-1">
         <main className="p-6">
+          {!running && (
+            <Card className="mb-6 border-amber-500/40 py-4">
+              <CardHeader className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <CardTitle>{t('app.paused.title')}</CardTitle>
+                  <CardDescription>{t('app.paused.description')}</CardDescription>
+                </div>
+                <Button size="sm" onClick={() => updatePreferences({ running: true })}>
+                  <Play /> {t('app.paused.resume')}
+                </Button>
+              </CardHeader>
+            </Card>
+          )}
           {status?.error && (
             <Card className="border-destructive/50 mb-6 py-4">
               <CardHeader>
-                <CardTitle className="text-destructive">Problem talking to the keyboard</CardTitle>
+                <CardTitle className="text-destructive">{t('app.problem')}</CardTitle>
                 <CardDescription>{status.error}</CardDescription>
               </CardHeader>
             </Card>
@@ -78,6 +107,9 @@ export function App() {
           </TabsContent>
           <TabsContent value="led-check">
             <LayoutPage connected={connected} />
+          </TabsContent>
+          <TabsContent value="settings">
+            <SettingsPage status={status} />
           </TabsContent>
           {import.meta.env.DEV && (
             <TabsContent value="lab">

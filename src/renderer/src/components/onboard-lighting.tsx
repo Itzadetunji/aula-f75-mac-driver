@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Loader2, MousePointerClick, Music } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { MusicMeter, renderFrame } from '@shared/effects'
 import {
   decodeOnboard,
@@ -73,6 +74,7 @@ const fakeBands = (t: number) =>
   )
 
 export function OnboardLighting({ connected, wireless, tabs }: { connected: boolean; wireless: boolean; tabs: ReactNode }) {
+  const { t: tr } = useTranslation()
   // `draft` is what the controls show: the stored config plus a slider still being dragged.
   const [draft, setDraft] = useState<OnboardConfig | null>(null)
   const [saving, setSaving] = useState(false)
@@ -183,7 +185,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
     return (
       <div className="text-muted-foreground flex flex-col items-center gap-6 py-16 text-sm">
         {tabs}
-        Connect the keyboard with the USB cable to read its saved lighting.
+        {tr('onboard.connectCable')}
       </div>
     )
   }
@@ -193,7 +195,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
       <div className="text-muted-foreground flex flex-col items-center gap-3 py-16 text-sm">
         {tabs}
         {!error && <Loader2 className="size-5 animate-spin" />}
-        {error ? `${error} Retrying…` : 'Reading the lighting saved on the keyboard…'}
+        {error ? tr('onboard.retrying', { error }) : tr('onboard.reading')}
       </div>
     )
   }
@@ -215,19 +217,16 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
         <p className="text-muted-foreground text-xs">
           {music
             ? musicActive
-              ? 'Live: play something on your Mac and the keyboard follows it.'
-              : 'Demo of the Music effect. Click the Music tile to stream it to the keyboard.'
-            : `${demo.reactive ? 'Demo: click keys or type to try it out. ' : 'Demo of the effect, roughly how the keyboard shows it. '}The keyboard runs this itself, even when it isn't connected to this Mac.`}
+              ? tr('onboard.preview.musicLive')
+              : tr('onboard.preview.musicDemo')
+            : `${tr(demo.reactive ? 'onboard.preview.reactiveDemo' : 'onboard.preview.demo')} ${tr('onboard.preview.runsItself')}`}
         </p>
       </div>
 
       {appOverrides && (
         <Card className="border-amber-500/40 py-4">
           <CardHeader>
-            <CardDescription>
-              The app's live lighting is covering the keyboard's own effect right now. Picking an effect here switches
-              the app to On-board so you can see the result.
-            </CardDescription>
+            <CardDescription>{tr('onboard.appOverrides')}</CardDescription>
           </CardHeader>
         </Card>
       )}
@@ -235,10 +234,8 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
       <div className="grid grid-cols-[1.4fr_1fr] gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Saved effect</CardTitle>
-            <CardDescription>
-              Stored on the keyboard, the same list you cycle through with Fn shortcuts. Changes apply straight away.
-            </CardDescription>
+            <CardTitle>{tr('onboard.savedEffect.title')}</CardTitle>
+            <CardDescription>{tr('onboard.savedEffect.description')}</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-4 gap-2">
             {draft ? (
@@ -252,18 +249,18 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
                     disabled={locked}
                     title={
                       e.unsupported
-                        ? "This effect stays dark on this keyboard's firmware."
+                        ? tr('onboard.unsupportedTitle')
                         : locked
-                          ? 'Per-key mode editing is coming next.'
+                          ? tr('onboard.perKeyComing')
                           : undefined
                     }
                     onClick={() => void apply({ ...draft, effect: e.id })}
                     className={tileClass(!music && draft.effect === e.id)}
                   >
-                    {e.name}
+                    {tr(`onboardEffects.${e.id}.name`)}
                     {isStored && (
                       <span
-                        title={musicActive ? 'Saved on the keyboard (shown when the app stops streaming)' : 'Saved on the keyboard'}
+                        title={tr(musicActive ? 'onboard.savedDotStreaming' : 'onboard.savedDot')}
                         className={cn(
                           'absolute top-1.5 right-1.5 size-1.5 rounded-full',
                           musicActive ? 'bg-muted-foreground' : 'bg-emerald-400',
@@ -274,18 +271,15 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
                 )
               })
             ) : (
-              <p className="text-muted-foreground col-span-4 text-sm">
-                Connected through the 2.4 GHz dongle, which can't read or change the effects stored on the keyboard.
-                Plug in the USB cable to edit them.
-              </p>
+              <p className="text-muted-foreground col-span-4 text-sm">{tr('onboard.wirelessNote')}</p>
             )}
             <button
               type="button"
-              title="Made by this app and streamed to the keyboard"
+              title={tr('onboard.musicTileTitle')}
               onClick={() => updateLighting({ effect: 'music' })}
               className={tileClass(music)}
             >
-              <Music className="size-3.5" /> Music
+              <Music className="size-3.5" /> {tr('effects.music.label')}
               {musicActive && <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-emerald-400" />}
             </button>
           </CardContent>
@@ -293,34 +287,29 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
 
         <Card>
           <CardHeader>
-            <CardTitle>{music ? 'Music' : (effect?.name ?? `Effect ${draft?.effect}`)}</CardTitle>
-            <CardDescription>
+            <CardTitle>
               {music
-                ? 'Streamed by this app over the USB cable or the 2.4 GHz dongle.'
-                : 'The keyboard remembers these separately for every effect.'}
-            </CardDescription>
+                ? tr('effects.music.label')
+                : effect
+                  ? tr(`onboardEffects.${effect.id}.name`)
+                  : tr('onboard.effectFallback', { id: draft?.effect })}
+            </CardTitle>
+            <CardDescription>{tr(music ? 'onboard.musicDescription' : 'onboard.settingsDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
             {music && (
               <>
                 <div className="bg-muted/50 flex flex-col gap-1.5 rounded-lg border p-3 text-sm">
-                  <p>Lights that follow whatever your Mac is playing. Pick a style below.</p>
-                  <p className="text-muted-foreground text-xs">
-                    The keyboard has no way to hear audio, so this can't live in its memory. The app keeps it running,
-                    even with the window closed, and sends it wirelessly through the dongle when the cable is unplugged.
-                    When the app quits, the keyboard goes back to the effect saved on it.
-                  </p>
-                  <p className="text-xs text-amber-400">
-                    For the dongle, the keyboard must be on Fixed on: animated effects repaint the keys and hide the
-                    stream.
-                  </p>
+                  <p>{tr('onboard.musicIntro')}</p>
+                  <p className="text-muted-foreground text-xs">{tr('onboard.musicExplainer')}</p>
+                  <p className="text-xs text-amber-400">{tr('onboard.musicDongleWarning')}</p>
                 </div>
                 <MusicStylePicker
                   value={lighting.musicStyle}
                   onChange={(musicStyle) => updateLighting({ musicStyle })}
                 />
                 <div className="flex flex-col gap-2">
-                  <Label>Brightness · {lighting.brightness}%</Label>
+                  <Label>{tr('common.brightness', { value: `${lighting.brightness}%` })}</Label>
                   <Slider
                     value={[lighting.brightness]}
                     min={0}
@@ -330,7 +319,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label>Sensitivity · {lighting.speed}%</Label>
+                  <Label>{tr('common.sensitivity', { value: `${lighting.speed}%` })}</Label>
                   <Slider
                     value={[lighting.speed]}
                     min={0}
@@ -344,18 +333,14 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
 
             {effect && (
               <div className="bg-muted/50 flex flex-col gap-1.5 rounded-lg border p-3 text-sm">
-                <p>{effect.description}</p>
-                {effect.unsupported && (
-                  <p className="text-xs text-amber-400">
-                    Your keyboard's firmware doesn't seem to support this effect: it stays dark. Pick another one.
-                  </p>
-                )}
+                <p>{tr(`onboardEffects.${effect.id}.description`)}</p>
+                {effect.unsupported && <p className="text-xs text-amber-400">{tr('onboard.unsupported')}</p>}
                 {!effect.unsupported && settings?.brightness === 0 && effect.id !== OFF_EFFECT && (
-                  <p className="text-xs text-amber-400">Brightness is 0, so the keyboard will be dark on this effect.</p>
+                  <p className="text-xs text-amber-400">{tr('onboard.brightnessZero')}</p>
                 )}
                 {effect.reactive && (
                   <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
-                    <MousePointerClick className="size-3.5" /> Reacts to typing. Click keys above or type to try it.
+                    <MousePointerClick className="size-3.5" /> {tr('onboard.reactive')}
                   </p>
                 )}
               </div>
@@ -364,9 +349,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
             {editable && settings && (
               <>
                 <div className="flex flex-col gap-2">
-                  <Label>
-                    Brightness · {settings.brightness}/{MAX_BRIGHTNESS}
-                  </Label>
+                  <Label>{tr('common.brightness', { value: `${settings.brightness}/${MAX_BRIGHTNESS}` })}</Label>
                   <Slider
                     value={[settings.brightness]}
                     min={0}
@@ -379,9 +362,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
 
                 {effect.hasSpeed && (
                   <div className="flex flex-col gap-2">
-                    <Label>
-                      Speed · {settings.speed}/{MAX_SPEED}
-                    </Label>
+                    <Label>{tr('common.speed', { value: `${settings.speed}/${MAX_SPEED}` })}</Label>
                     <Slider
                       value={[settings.speed]}
                       min={0}
@@ -395,13 +376,19 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
 
                 {effect.hasColor && (
                   <div className="flex flex-col gap-2">
-                    <Label>Colour · {ONBOARD_COLORS[settings.color]?.name ?? 'Multicolour'}</Label>
+                    <Label>
+                      {tr('common.colourNamed', {
+                        name: ONBOARD_COLORS[settings.color]
+                          ? tr(`onboardColors.${ONBOARD_COLORS[settings.color].id}`)
+                          : tr('common.multicolour'),
+                      })}
+                    </Label>
                     <div className="flex flex-wrap items-center gap-2">
                       {ONBOARD_COLORS.map((c, i) => (
                         <button
-                          key={c.name}
+                          key={c.id}
                           type="button"
-                          title={c.name}
+                          title={tr(`onboardColors.${c.id}`)}
                           onClick={() => commitSettings({ color: i })}
                           className={cn(
                             'size-7 rounded-full border-2 border-transparent',
@@ -412,7 +399,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
                       ))}
                       <button
                         type="button"
-                        title="Multicolour"
+                        title={tr('common.multicolour')}
                         onClick={() => commitSettings({ color: MULTICOLOR })}
                         className={cn(
                           'size-7 rounded-full border-2 border-transparent bg-[conic-gradient(red,yellow,lime,cyan,blue,magenta,red)]',
@@ -427,9 +414,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
 
             {!music && !editable && draft && (
               <p className="text-muted-foreground text-sm">
-                {draft.effect === SELF_DEFINE_EFFECT
-                  ? 'The keyboard is showing its saved per-key colours. Editing them here is coming next.'
-                  : 'No settings for this effect.'}
+                {tr(draft.effect === SELF_DEFINE_EFFECT ? 'onboard.selfDefine' : 'common.noSettings')}
               </p>
             )}
 
@@ -437,7 +422,7 @@ export function OnboardLighting({ connected, wireless, tabs }: { connected: bool
 
             {saving && (
               <p className="text-muted-foreground mt-auto flex items-center gap-1.5 text-xs">
-                <Loader2 className="size-3.5 animate-spin" /> Saving to the keyboard…
+                <Loader2 className="size-3.5 animate-spin" /> {tr('onboard.saving')}
               </p>
             )}
           </CardContent>

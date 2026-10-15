@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { LED_SLOTS, RIGHT_COLUMN_LEDS } from '@shared/layout'
 import type { RGB } from '@shared/types'
 import { KeyboardView } from '@/components/keyboard-view'
@@ -12,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 type Mode = 'keys' | 'raw'
 
 function LedMapCheck({ connected }: { connected: boolean }) {
+  const { t } = useTranslation()
   const { keys: F75_KEYS } = useLayout()
   const [mode, setMode] = useState<Mode>('keys')
   const [index, setIndex] = useState(0)
@@ -48,18 +50,16 @@ function LedMapCheck({ connected }: { connected: boolean }) {
       <Card className="w-full max-w-xl">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>LED map check</CardTitle>
+            <CardTitle>{t('layout.ledMap.title')}</CardTitle>
             <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>
               <TabsList>
-                <TabsTrigger value="keys">By key</TabsTrigger>
-                <TabsTrigger value="raw">By LED index</TabsTrigger>
+                <TabsTrigger value="keys">{t('layout.ledMap.byKey')}</TabsTrigger>
+                <TabsTrigger value="raw">{t('layout.ledMap.byIndex')}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
           <CardDescription>
-            {mode === 'keys'
-              ? "Only one key is lit on your keyboard. If it isn't the highlighted key here, note both names so the layout can be corrected."
-              : 'Steps through every LED index the keyboard accepts. Note which physical key lights up for indexes that show "unmapped".'}
+            {t(mode === 'keys' ? 'layout.ledMap.keysDescription' : 'layout.ledMap.rawDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-between">
@@ -69,16 +69,18 @@ function LedMapCheck({ connected }: { connected: boolean }) {
           <div className="text-center">
             {mode === 'keys' ? (
               <>
-                <div className="text-2xl font-semibold">{key.label || 'Space'}</div>
+                <div className="text-2xl font-semibold">{key.label || t('layout.ledMap.space')}</div>
                 <div className="text-muted-foreground font-mono text-xs">
-                  LED #{key.led} · key {index + 1}/{F75_KEYS.length}
+                  {t('layout.ledMap.position', { led: key.led, index: index + 1, total: F75_KEYS.length })}
                 </div>
               </>
             ) : (
               <>
                 <div className="font-mono text-2xl font-semibold">#{rawLed}</div>
                 <div className="text-muted-foreground text-xs">
-                  {mappedKey ? `mapped to ${mappedKey.label || 'Space'}` : 'unmapped'}
+                  {mappedKey
+                    ? t('layout.ledMap.mappedTo', { key: mappedKey.label || t('layout.ledMap.space') })
+                    : t('layout.ledMap.unmapped')}
                 </div>
               </>
             )}
@@ -105,11 +107,12 @@ function RightSideKeys() {
 }
 
 export function LayoutPage({ connected }: { connected: boolean }) {
+  const { t } = useTranslation()
   return (
     <Tabs defaultValue="led-map" className="items-center gap-6">
       <TabsList>
-        <TabsTrigger value="led-map">LED map check</TabsTrigger>
-        <TabsTrigger value="right-side">Right-side keys</TabsTrigger>
+        <TabsTrigger value="led-map">{t('layout.tabs.ledMap')}</TabsTrigger>
+        <TabsTrigger value="right-side">{t('layout.tabs.rightSide')}</TabsTrigger>
       </TabsList>
       <TabsContent value="led-map" className="w-full">
         <LedMapCheck connected={connected} />

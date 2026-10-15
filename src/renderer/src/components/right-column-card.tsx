@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { RIGHT_COLUMN_KEYS, RIGHT_COLUMN_PRESETS, type RightColumn, type RightColumnKey } from '@shared/layout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,6 +8,7 @@ import { useLayout } from '@/hooks/use-layout'
 import { cn } from '@/lib/utils'
 
 export function RightColumnCard() {
+  const { t } = useTranslation()
   const { rightColumn, setRightColumn, updatePreferences } = useLayout()
 
   const setSlot = (slot: number, id: RightColumnKey) => {
@@ -18,10 +20,8 @@ export function RightColumnCard() {
   return (
     <Card className="w-full max-w-xl">
       <CardHeader>
-        <CardTitle>Right-side keys</CardTitle>
-        <CardDescription>
-          F75 variants label the highlighted column differently. Pick the order printed on your keycaps, top to bottom.
-        </CardDescription>
+        <CardTitle>{t('layout.rightColumn.title')}</CardTitle>
+        <CardDescription>{t('layout.rightColumn.description')}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-2">
@@ -42,7 +42,7 @@ export function RightColumnCard() {
         <div className="grid grid-cols-4 gap-2">
           {rightColumn.map((id, slot) => (
             <div key={slot} className="flex flex-col gap-1.5">
-              <Label className="text-muted-foreground text-xs">Row {slot + 1}</Label>
+              <Label className="text-muted-foreground text-xs">{t('layout.rightColumn.row', { number: slot + 1 })}</Label>
               <Select value={id} onValueChange={(v) => setSlot(slot, v as RightColumnKey)}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
@@ -59,7 +59,7 @@ export function RightColumnCard() {
           ))}
         </div>
         <Button variant="ghost" size="sm" className="self-start" onClick={() => updatePreferences({ onboarded: false })}>
-          Run setup again
+          {t('layout.rightColumn.runSetup')}
         </Button>
       </CardContent>
     </Card>

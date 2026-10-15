@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ComponentType, type MouseEvent, type ReactNode } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { Cpu, HardDrive, MonitorSmartphone, Music, Paintbrush, Power, Sparkles, Sun, Waves, Wind } from 'lucide-react'
 import { MusicMeter, renderFrame } from '@shared/effects'
 import { F75_KEYS, type KeyDef } from '@shared/layout'
@@ -15,15 +16,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAnimationTime, useAudioBands, useLighting } from '@/hooks/use-f75'
 import { cn, hexToRgb, rgbToHex } from '@/lib/utils'
 
-const EFFECTS: { id: EffectId; label: string; icon: ComponentType<{ className?: string }>; hint: string }[] = [
-  { id: 'hardware', label: 'On-board', icon: Cpu, hint: "The keyboard's own saved effect (Fn shortcuts)." },
-  { id: 'static', label: 'Static', icon: Sun, hint: 'One colour on every key.' },
-  { id: 'breathing', label: 'Breathing', icon: Wind, hint: 'Fades the colour in and out.' },
-  { id: 'spectrum', label: 'Spectrum', icon: Sparkles, hint: 'Cycles the whole board through the rainbow.' },
-  { id: 'wave', label: 'Wave', icon: Waves, hint: 'Rainbow sweeping across the board.' },
-  { id: 'music', label: 'Music', icon: Music, hint: "A spectrum that dances to whatever your Mac is playing." },
-  { id: 'custom', label: 'Per-key', icon: Paintbrush, hint: 'Paint individual keys.' },
-  { id: 'off', label: 'Off', icon: Power, hint: 'All LEDs off.' },
+/** Labels live under `effects` in the locale files. */
+const EFFECTS: { id: EffectId; icon: ComponentType<{ className?: string }> }[] = [
+  { id: 'hardware', icon: Cpu },
+  { id: 'static', icon: Sun },
+  { id: 'breathing', icon: Wind },
+  { id: 'spectrum', icon: Sparkles },
+  { id: 'wave', icon: Waves },
+  { id: 'music', icon: Music },
+  { id: 'custom', icon: Paintbrush },
+  { id: 'off', icon: Power },
 ]
 
 const SWATCHES: RGB[] = [
@@ -38,7 +40,7 @@ const SWATCHES: RGB[] = [
   [255, 0, 170],
 ]
 
-function Kbd({ children }: { children: ReactNode }) {
+function Kbd({ children }: { children?: ReactNode }) {
   return (
     <kbd className="bg-muted text-foreground mx-0.5 rounded border px-1.5 py-0.5 font-sans text-[11px] font-medium">
       {children}
@@ -47,13 +49,14 @@ function Kbd({ children }: { children: ReactNode }) {
 }
 
 export function LightingPage({ connected, wireless }: { connected: boolean; wireless: boolean }) {
+  const { t } = useTranslation()
   const tabs = (
     <TabsList>
       <TabsTrigger value="live">
-        <MonitorSmartphone /> Live (app)
+        <MonitorSmartphone /> {t('lighting.tabs.live')}
       </TabsTrigger>
       <TabsTrigger value="onboard">
-        <HardDrive /> Saved on keyboard
+        <HardDrive /> {t('lighting.tabs.onboard')}
       </TabsTrigger>
     </TabsList>
   )
@@ -71,6 +74,7 @@ export function LightingPage({ connected, wireless }: { connected: boolean; wire
 }
 
 function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wireless: boolean; tabs: ReactNode }) {
+  const { t: tr } = useTranslation()
   const [lighting, update] = useLighting()
   const t = useAnimationTime()
   const [brush, setBrush] = useState<RGB>([255, 0, 170])
@@ -180,43 +184,43 @@ function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wirel
         {isCustom && (
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground w-28 text-xs tabular-nums">
-              {selected.size === 0 ? 'No keys selected' : `${selected.size} key${selected.size === 1 ? '' : 's'} selected`}
+              {selected.size === 0 ? tr('lighting.selection.none') : tr('lighting.selection.count', { count: selected.size })}
             </span>
             <Button variant="outline" size="sm" onClick={() => setSelected(new Set(F75_KEYS.map((k) => k.led)))}>
-              Select all
+              {tr('lighting.selection.selectAll')}
             </Button>
             <Button variant="outline" size="sm" disabled={selected.size === 0} onClick={() => setSelected(new Set())}>
-              Deselect
+              {tr('lighting.selection.deselect')}
             </Button>
             <Button variant="secondary" size="sm" disabled={selected.size === 0} onClick={() => colorSelected(brush)}>
-              Apply colour
+              {tr('lighting.selection.applyColour')}
             </Button>
             <Button variant="outline" size="sm" disabled={selected.size === 0} onClick={() => colorSelected([0, 0, 0])}>
-              Turn off
+              {tr('lighting.selection.turnOff')}
             </Button>
           </div>
         )}
         {isCustom ? (
           <ul className="text-muted-foreground grid grid-cols-2 gap-x-8 gap-y-1.5 text-xs">
-            <li>Click a key to select it, click it again to deselect</li>
+            <li>{tr('lighting.help.click')}</li>
             <li>
-              Hold <Kbd>⇧ Shift</Kbd> or <Kbd>⌘ Command</Kbd> and click to select multiple keys
+              <Trans i18nKey="lighting.help.multi" components={{ kbd: <Kbd /> }} />
             </li>
-            <li>Drag across keys to select a group</li>
+            <li>{tr('lighting.help.drag')}</li>
             <li>
-              <Kbd>⌘ A</Kbd> selects all · <Kbd>Esc</Kbd> or click the board's edge to deselect all
+              <Trans i18nKey="lighting.help.all" components={{ kbd: <Kbd /> }} />
             </li>
-            <li className="col-span-2">Then pick a colour on the right to light the selected keys</li>
+            <li className="col-span-2">{tr('lighting.help.thenPick')}</li>
           </ul>
         ) : (
           <p className="text-muted-foreground text-xs">
             {isMusic
-              ? 'Play something on your Mac and the bars follow the music.'
+              ? tr('lighting.preview.music')
               : !isHardware
-              ? 'Live preview of what the keyboard is showing.'
-              : storedEffect
-                ? `The keyboard is running its saved effect: ${storedEffect.name}.${demo.reactive ? ' Click keys or type to try it.' : ''}`
-                : 'The keyboard is running its own saved effect.'}
+                ? tr('lighting.preview.live')
+                : storedEffect
+                  ? `${tr('lighting.preview.storedEffect', { name: tr(`onboardEffects.${storedEffect.id}.name`) })}${demo.reactive ? ` ${tr('lighting.preview.tryIt')}` : ''}`
+                  : tr('lighting.preview.ownEffect')}
           </p>
         )}
       </div>
@@ -224,20 +228,18 @@ function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wirel
       <div className="grid grid-cols-[1.4fr_1fr] gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Effect</CardTitle>
+            <CardTitle>{tr('lighting.effectCard.title')}</CardTitle>
             <CardDescription>
-              Effects other than On-board are driven by this app and stay active while it is running (even with the
-              window closed).
-              {wireless &&
-                " Over the 2.4 GHz dongle, colours are rounded a little to fit the radio link, and the keyboard must be on Fixed on (animated effects paint over the app's lighting)."}
+              {tr('lighting.effectCard.description')}
+              {wireless && ` ${tr('lighting.effectCard.wireless')}`}
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-4 gap-2">
-            {EFFECTS.map(({ id, label, icon: Icon, hint }) => (
+            {EFFECTS.map(({ id, icon: Icon }) => (
               <button
                 key={id}
                 type="button"
-                title={hint}
+                title={tr(`effects.${id}.hint`)}
                 disabled={!connected}
                 onClick={() => update({ effect: id })}
                 className={cn(
@@ -246,7 +248,7 @@ function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wirel
                 )}
               >
                 <Icon className="size-5" />
-                {label}
+                {tr(`effects.${id}.label`)}
               </button>
             ))}
           </CardContent>
@@ -254,12 +256,12 @@ function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wirel
 
         <Card>
           <CardHeader>
-            <CardTitle>{isCustom ? 'Key colour' : 'Settings'}</CardTitle>
+            <CardTitle>{isCustom ? tr('lighting.keyColour') : tr('common.settings')}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
             {(usesColor || isCustom) && (
               <div className="flex flex-col gap-2">
-                <Label>Colour</Label>
+                <Label>{tr('common.colour')}</Label>
                 <div className="flex flex-wrap items-center gap-2">
                   {SWATCHES.map((c) => (
                     <button
@@ -289,25 +291,20 @@ function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wirel
 
             {lighting.effect !== 'hardware' && lighting.effect !== 'off' && (
               <div className="flex flex-col gap-2">
-                <Label>Brightness · {lighting.brightness}%</Label>
+                <Label>{tr('common.brightness', { value: `${lighting.brightness}%` })}</Label>
                 <Slider value={[lighting.brightness]} min={0} max={100} step={1} onValueChange={([v]) => update({ brightness: v })} />
               </div>
             )}
 
             {usesSpeed && (
               <div className="flex flex-col gap-2">
-                <Label>
-                  {isMusic ? 'Sensitivity' : 'Speed'} · {lighting.speed}%
-                </Label>
+                <Label>{tr(isMusic ? 'common.sensitivity' : 'common.speed', { value: `${lighting.speed}%` })}</Label>
                 <Slider value={[lighting.speed]} min={0} max={100} step={1} onValueChange={([v]) => update({ speed: v })} />
               </div>
             )}
 
             {isMusic && (
-              <p className="text-muted-foreground text-xs">
-                The app listens to your Mac's sound output only (no microphone, nothing is recorded). The first time, macOS asks
-                for Screen &amp; System Audio Recording permission.
-              </p>
+              <p className="text-muted-foreground text-xs">{tr('lighting.musicPrivacy')}</p>
             )}
 
             {isCustom && (
@@ -317,16 +314,16 @@ function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wirel
                   size="sm"
                   onClick={() => update({ perKey: Object.fromEntries(F75_KEYS.map((k) => [k.led, brush])) })}
                 >
-                  Fill all
+                  {tr('lighting.fillAll')}
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => update({ perKey: {} })}>
-                  Clear all
+                  {tr('lighting.clearAll')}
                 </Button>
               </div>
             )}
 
             {(lighting.effect === 'hardware' || lighting.effect === 'off') && (
-              <p className="text-muted-foreground text-sm">No settings for this effect.</p>
+              <p className="text-muted-foreground text-sm">{tr('common.noSettings')}</p>
             )}
           </CardContent>
         </Card>

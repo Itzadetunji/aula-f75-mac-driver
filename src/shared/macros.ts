@@ -1,3 +1,5 @@
+import { LocalizedError } from './i18n'
+
 export interface Macro {
   id: string
   name: string
@@ -59,11 +61,11 @@ export function toAccelerator({ command, control, alt, shift, key }: ShortcutPar
   return [command && 'Command', control && 'Control', alt && 'Alt', shift && 'Shift', key].filter(Boolean).join('+')
 }
 
-/** Returns an error message if the shortcut can't be used as a macro trigger. */
+/** Returns the translation key of the problem if the shortcut can't be used as a macro trigger. */
 export function validateShortcut(parts: ShortcutParts): string | null {
   const strong = parts.command || parts.control || parts.alt
-  if (!strong && !parts.shift) return 'Start the shortcut with ⌘, ⌥, ⌃ or ⇧.'
-  if (!strong && !NON_TYPING.test(parts.key)) return '⇧ on its own only works with keys like F1–F12; ⇧ + a letter is how you type capitals.'
+  if (!strong && !parts.shift) return 'macros.errors.needsModifier'
+  if (!strong && !NON_TYPING.test(parts.key)) return 'macros.errors.shiftOnly'
   return null
 }
 
@@ -109,7 +111,7 @@ export function exportMacros(macros: Macro[]): string {
 /**
  * Turns an uploaded file into macros. JSON files hold one macro, a list, or an
  * exported `{ macros: [...] }` file; any other file becomes one macro that types
- * its contents. Throws with a readable message when nothing usable is found.
+ * its contents. Throws a LocalizedError when nothing usable is found.
  */
 export function parseMacroFile(fileName: string, content: string): Macro[] {
   const baseName = fileName.replace(/\.[^.]+$/, '') || 'Imported macro'
@@ -124,7 +126,7 @@ export function parseMacroFile(fileName: string, content: string): Macro[] {
 
   if (!/\.json$/i.test(fileName)) {
     const text = content.replace(/\r\n/g, '\n').replace(/\n$/, '')
-    if (!text.trim()) throw new Error(`${fileName} is empty.`)
+    if (!text.trim()) throw new LocalizedError('macros.fileErrors.empty', { file: fileName })
     return [make({ text }, baseName)]
   }
 
@@ -132,10 +134,10 @@ export function parseMacroFile(fileName: string, content: string): Macro[] {
   try {
     data = JSON.parse(content)
   } catch {
-    throw new Error(`${fileName} isn't valid JSON.`)
+    throw new LocalizedError('macros.fileErrors.invalidJson', { file: fileName })
   }
   const list = Array.isArray(data) ? data : (data as { macros?: unknown })?.macros ?? [data]
-  if (!Array.isArray(list)) throw new Error(`${fileName} has no macros in it.`)
+  if (!Array.isArray(list)) throw new LocalizedError('macros.fileErrors.noMacros', { file: fileName })
 
   const macros = list.flatMap((raw, i) => {
     if (!raw || typeof raw !== 'object') return []
@@ -154,7 +156,7 @@ export function parseMacroFile(fileName: string, content: string): Macro[] {
       ),
     ]
   })
-  if (macros.length === 0) throw new Error(`${fileName} has no macros with text in it.`)
+  if (macros.length === 0) throw new LocalizedError('macros.fileErrors.noText', { file: fileName })
   return macros
 }
 

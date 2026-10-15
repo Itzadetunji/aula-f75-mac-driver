@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Download, Keyboard, Plus, ShieldAlert, Trash2, Upload } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import {
   exportMacros,
   formatAccelerator,
@@ -17,7 +18,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { usePreferences } from '@/hooks/use-layout'
-import { cn } from '@/lib/utils'
+import { cn, errorText } from '@/lib/utils'
 
 function Keys({ parts, muted }: { parts: string[]; muted?: boolean }) {
   return (
@@ -38,6 +39,7 @@ function Keys({ parts, muted }: { parts: string[]; muted?: boolean }) {
 }
 
 function ShortcutRecorder({ value, onChange }: { value: string; onChange: (accelerator: string) => void }) {
+  const { t } = useTranslation()
   const [recording, setRecording] = useState(false)
   const [held, setHeld] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -101,15 +103,15 @@ function ShortcutRecorder({ value, onChange }: { value: string; onChange: (accel
           held.length ? (
             <Keys parts={[...held, '…']} />
           ) : (
-            <span className="text-muted-foreground">Press ⌘, ⌥, ⌃ or ⇧ + a key… (Esc to cancel)</span>
+            <span className="text-muted-foreground">{t('macros.recordPrompt')}</span>
           )
         ) : value ? (
           <Keys parts={formatAccelerator(value)} />
         ) : (
-          <span className="text-muted-foreground">Click to record shortcut</span>
+          <span className="text-muted-foreground">{t('macros.recordIdle')}</span>
         )}
       </button>
-      {error && recording && <p className="text-destructive text-xs">{error}</p>}
+      {error && recording && <p className="text-destructive text-xs">{t(error)}</p>}
     </div>
   )
 }
@@ -125,50 +127,52 @@ function MacroCard({
   onChange: (patch: Partial<Macro>) => void
   onDelete: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <Card className={cn('gap-4', !macro.enabled && 'opacity-60')}>
       <CardHeader className="flex items-center justify-between">
         <Input
           value={macro.name}
           onChange={(e) => onChange({ name: e.target.value })}
-          placeholder="Macro name"
+          placeholder={t('macros.namePlaceholder')}
           className="h-8 max-w-xs border-transparent bg-transparent px-1 font-semibold shadow-none dark:bg-transparent"
         />
         <div className="flex items-center gap-3">
           <Label className="text-muted-foreground text-xs">
-            Enabled
+            {t('macros.enabled')}
             <Switch checked={macro.enabled} onCheckedChange={(enabled) => onChange({ enabled })} />
           </Label>
-          <Button variant="ghost" size="icon" onClick={onDelete} aria-label="Delete macro">
+          <Button variant="ghost" size="icon" onClick={onDelete} aria-label={t('macros.delete')}>
             <Trash2 />
           </Button>
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
-          <Label>Shortcut</Label>
+          <Label>{t('macros.shortcut')}</Label>
           <ShortcutRecorder value={macro.accelerator} onChange={(accelerator) => onChange({ accelerator })} />
         </div>
         <div className="flex flex-col gap-2">
-          <Label>Types this</Label>
+          <Label>{t('macros.typesThis')}</Label>
           <Textarea
             value={macro.text}
             onChange={(e) => onChange({ text: e.target.value })}
-            placeholder="e.g. adetunji@example.com"
+            placeholder={t('macros.textPlaceholder')}
             className="max-h-48"
           />
         </div>
         <Label className="text-muted-foreground text-xs font-normal">
           <Switch checked={macro.pressEnter} onCheckedChange={(pressEnter) => onChange({ pressEnter })} />
-          Press Return after typing
+          {t('macros.pressEnter')}
         </Label>
-        {error && <p className="text-destructive text-sm">{error}</p>}
+        {error && <p className="text-destructive text-sm">{t(error)}</p>}
       </CardContent>
     </Card>
   )
 }
 
 export function MacrosPage() {
+  const { t } = useTranslation()
   const { preferences, updatePreferences } = usePreferences()
   const [errors, setErrors] = useState<MacroErrors>({})
   const [trusted, setTrusted] = useState(true)
@@ -197,7 +201,7 @@ export function MacrosPage() {
       try {
         imported.push(...parseMacroFile(file.name, await file.text()))
       } catch (err) {
-        problems.push((err as Error).message)
+        problems.push(errorText(err, t))
       }
     }
     // A shortcut can only trigger one macro; clashing imports keep their text and need a new shortcut.
@@ -215,8 +219,8 @@ export function MacrosPage() {
     if (imported.length) save([...macros, ...imported])
 
     const parts = []
-    if (imported.length) parts.push(`Imported ${imported.length} macro${imported.length === 1 ? '' : 's'}.`)
-    if (cleared) parts.push(`${cleared} shortcut${cleared === 1 ? ' was' : 's were'} already in use, so record a new one.`)
+    if (imported.length) parts.push(t('macros.imported', { count: imported.length }))
+    if (cleared) parts.push(t('macros.clashes', { count: cleared }))
     parts.push(...problems)
     setImportNote({ ok: problems.length === 0, text: parts.join(' ') })
   }
@@ -235,18 +239,15 @@ export function MacrosPage() {
   const add = () =>
     save([
       ...macros,
-      { id: crypto.randomUUID(), name: `Macro ${macros.length + 1}`, accelerator: '', text: '', pressEnter: false, enabled: true },
+      { id: crypto.randomUUID(), name: t('macros.defaultName', { number: macros.length + 1 }), accelerator: '', text: '', pressEnter: false, enabled: true },
     ])
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <div className="flex items-end justify-between">
         <div className="flex flex-col gap-1">
-          <h2 className="text-xl font-semibold">Macros</h2>
-          <p className="text-muted-foreground text-sm">
-            Press a shortcut anywhere on your Mac and the app types the text for you. Shortcuts must start with ⌘, ⌥, ⌃
-            or ⇧. Fn can't be used: the F75 handles it internally and never sends it to macOS.
-          </p>
+          <h2 className="text-xl font-semibold">{t('macros.title')}</h2>
+          <p className="text-muted-foreground text-sm">{t('macros.description')}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <input
@@ -261,15 +262,15 @@ export function MacrosPage() {
             }}
           />
           <Button variant="outline" onClick={() => fileInput.current?.click()}>
-            <Upload /> Import
+            <Upload /> {t('macros.import')}
           </Button>
           {macros.length > 0 && (
             <Button variant="outline" onClick={exportFile}>
-              <Download /> Export
+              <Download /> {t('macros.export')}
             </Button>
           )}
           <Button onClick={add}>
-            <Plus /> New macro
+            <Plus /> {t('macros.new')}
           </Button>
         </div>
       </div>
@@ -286,15 +287,12 @@ export function MacrosPage() {
             <div className="flex items-center gap-3">
               <ShieldAlert className="size-5 shrink-0 text-amber-400" />
               <div>
-                <div className="text-sm font-medium">Accessibility access needed</div>
-                <div className="text-muted-foreground text-xs">
-                  macOS only lets apps type into other apps once you allow it in System Settings → Privacy & Security →
-                  Accessibility.
-                </div>
+                <div className="text-sm font-medium">{t('macros.accessibility.title')}</div>
+                <div className="text-muted-foreground text-xs">{t('macros.accessibility.description')}</div>
               </div>
             </div>
             <Button variant="secondary" size="sm" onClick={() => void window.f75.requestAccessibility()}>
-              Allow access
+              {t('macros.accessibility.allow')}
             </Button>
           </CardContent>
         </Card>
@@ -303,15 +301,12 @@ export function MacrosPage() {
       {macros.length === 0 ? (
         <Card className="items-center py-12 text-center">
           <CardHeader className="w-full">
-            <CardTitle>No macros yet</CardTitle>
-            <CardDescription>
-              Create one to type an email, a signature or a code snippet with one shortcut, or import a .txt or .json
-              file.
-            </CardDescription>
+            <CardTitle>{t('macros.empty.title')}</CardTitle>
+            <CardDescription>{t('macros.empty.description')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button variant="secondary" onClick={add}>
-              <Plus /> New macro
+              <Plus /> {t('macros.new')}
             </Button>
           </CardContent>
         </Card>
@@ -328,7 +323,7 @@ export function MacrosPage() {
       )}
 
       <p className="text-muted-foreground text-center text-xs">
-        Macros run while this app is open, even with its window closed.
+        {t(preferences.running ? 'macros.footer' : 'macros.pausedFooter')}
       </p>
     </div>
   )

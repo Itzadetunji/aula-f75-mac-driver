@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { DeviceStatus, F75Api, LightingState, MacroErrors } from '@shared/types'
+import type { DeviceStatus, F75Api, LightingState, MacroErrors, Preferences } from '@shared/types'
 
 const api: F75Api = {
   getStatus: () => ipcRenderer.invoke('f75:getStatus'),
@@ -19,8 +19,20 @@ const api: F75Api = {
   rawRead: (args) => ipcRenderer.invoke('f75:rawRead', args),
   readOnboard: () => ipcRenderer.invoke('f75:readOnboard'),
   writeOnboard: (changes) => ipcRenderer.invoke('f75:writeOnboard', changes),
+  writeKeyboardSettings: (changes) => ipcRenderer.invoke('f75:writeKeyboardSettings', changes),
+  onLighting: (cb) => {
+    const listener = (_e: unknown, state: LightingState) => cb(state)
+    ipcRenderer.on('f75:lighting', listener)
+    return () => ipcRenderer.removeListener('f75:lighting', listener)
+  },
   getPreferences: () => ipcRenderer.invoke('f75:getPreferences'),
   setPreferences: (patch) => ipcRenderer.invoke('f75:setPreferences', patch),
+  onPreferences: (cb) => {
+    const listener = (_e: unknown, preferences: Preferences) => cb(preferences)
+    ipcRenderer.on('f75:preferences', listener)
+    return () => ipcRenderer.removeListener('f75:preferences', listener)
+  },
+  getAppVersion: () => ipcRenderer.invoke('f75:getAppVersion'),
   getMacroErrors: () => ipcRenderer.invoke('f75:getMacroErrors'),
   onMacroErrors: (cb) => {
     const listener = (_e: unknown, errors: MacroErrors) => cb(errors)

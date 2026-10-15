@@ -3,19 +3,31 @@ import type { Macro } from './macros'
 
 export type RGB = [number, number, number]
 
+export type Language = 'en' | 'fr' | 'es' | 'zh'
+
+/** What closing the window does: keep running in the menu bar, or quit the app. */
+export type CloseAction = 'menubar' | 'quit'
+
 export interface Preferences {
   onboarded: boolean
   rightColumn: RightColumn
   macros: Macro[]
+  language: Language
+  closeAction: CloseAction
+  /** false = paused: the app's lighting and macros are off and the keyboard shows its own effect. */
+  running: boolean
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
   onboarded: false,
   rightColumn: DEFAULT_RIGHT_COLUMN,
   macros: [],
+  language: 'en',
+  closeAction: 'menubar',
+  running: true,
 }
 
-/** Macro id -> reason it couldn't be registered. */
+/** Macro id -> translation key of the reason it couldn't be registered. */
 export type MacroErrors = Record<string, string>
 
 export type EffectId = 'hardware' | 'off' | 'static' | 'breathing' | 'spectrum' | 'wave' | 'music' | 'custom'
@@ -72,8 +84,14 @@ export interface F75Api {
    * Switches the app to On-board so it stops overriding the keyboard.
    */
   writeOnboard(changes: [number, number][]): Promise<number[]>
+  /** Patch keyboard-wide settings (sleep, debounce) on the stored page; returns the page as read back. */
+  writeKeyboardSettings(changes: [number, number][]): Promise<number[]>
+  /** Fires when lighting is changed outside the window (e.g. from the menu bar). */
+  onLighting(cb: (state: LightingState) => void): () => void
   getPreferences(): Promise<Preferences>
   setPreferences(patch: Partial<Preferences>): Promise<Preferences>
+  onPreferences(cb: (preferences: Preferences) => void): () => void
+  getAppVersion(): Promise<string>
   getMacroErrors(): Promise<MacroErrors>
   onMacroErrors(cb: (errors: MacroErrors) => void): () => void
   /** Temporarily unregisters macro shortcuts so a new one can be recorded. */
