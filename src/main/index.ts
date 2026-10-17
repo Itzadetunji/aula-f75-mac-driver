@@ -69,6 +69,8 @@ let audioRunning = false
 /** The status error currently shown is the helper's audio error. */
 let audioErrorShown = false
 let musicBlocker: number | null = null
+/** How the helper captures audio: a Core Audio tap survives display sleep, screen capture doesn't. */
+let audioSource: 'tap' | 'screen' | null = null
 
 let status: DeviceStatus = {
   helperRunning: false,
@@ -124,11 +126,12 @@ function clearAudioError() {
 }
 
 /**
- * macOS ends system audio capture when the display sleeps, so Music goes dark
- * unless the display is kept awake. Otherwise only App Nap and idle system sleep are held off.
+ * Music holds off App Nap and idle system sleep. Screen capture (macOS before
+ * 14.2) also ends when the display sleeps, so there the display is kept awake too.
  */
 function syncMusicBlocker() {
-  const type = !audioRunning ? null : preferences.keepAwakeForMusic ? 'prevent-display-sleep' : 'prevent-app-suspension'
+  const keepDisplay = preferences.keepAwakeForMusic && audioSource !== 'tap'
+  const type = !audioRunning ? null : keepDisplay ? 'prevent-display-sleep' : 'prevent-app-suspension'
   if (musicBlocker !== null) powerSaveBlocker.stop(musicBlocker)
   musicBlocker = type ? powerSaveBlocker.start(type) : null
 }
@@ -199,7 +202,12 @@ helper.on('audioError', (msg: { message: string }) => {
   audioErrorShown = true
   publishStatus({ error: msg.message })
 })
-helper.on('audioStarted', clearAudioError)
+helper.on('audioStarted', (msg: { source: 'tap' | 'screen' }) => {
+  clearAudioError()
+  if (msg.source === audioSource) return
+  audioSource = msg.source
+  syncMusicBlocker()
+})
 helper.on('menu', ({ id }: { id: string }) => {
   if (id === 'toggleRunning') setRunning(!preferences.running)
   else if (id === 'open') showWindow()
@@ -214,6 +222,7 @@ helper.on('menu', ({ id }: { id: string }) => {
 helper.on('exit', () => {
   stopAnimation()
   audioRunning = false
+  audioSource = null
   syncMusicBlocker()
   publishStatus({ helperRunning: false, connected: false })
   setTimeout(startHelper, 2000)

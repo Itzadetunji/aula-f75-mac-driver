@@ -97,7 +97,7 @@
       "wireless": "Over the 2.4 GHz dongle, colours are rounded a little to fit the radio link, and the keyboard must be on Fixed on (animated effects paint over the app's lighting)."
     },
     "keyColour": "Key colour",
-    "musicPrivacy": "The app listens to your Mac's sound output only (no microphone, nothing is recorded). The first time, macOS asks for Screen & System Audio Recording permission.",
+    "musicPrivacy": "The app listens to your Mac's sound output only (no microphone, nothing is recorded). The first time, macOS asks for permission to record system audio.",
     "fillAll": "Fill all",
     "clearAll": "Clear all"
   },
@@ -297,7 +297,7 @@
       "closeQuit": "Quit the app",
       "closeDescription": "In the menu bar, live lighting, Music and macros keep working with the window closed.",
       "keepAwake": "Keep the display awake while Music is on",
-      "keepAwakeDescription": "macOS stops system audio capture when the display sleeps, which turns Music off. Turn this off to let the display sleep as usual."
+      "keepAwakeDescription": "Only needed on macOS versions before 14.2, where system audio capture stops when the display sleeps. Newer versions keep Music running with the display off."
     },
     "keyboard": {
       "title": "Keyboard",

@@ -44,8 +44,8 @@ final class Server {
         audio.onError = { message in
             emit(["event": "audioError", "message": message])
         }
-        audio.onStarted = {
-            emit(["event": "audioStarted"])
+        audio.onStarted = { source in
+            emit(["event": "audioStarted", "source": source])
         }
         menu.onSelect = { id in
             emit(["event": "menu", "id": id])

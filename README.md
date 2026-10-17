@@ -41,7 +41,7 @@ macOS asks for permissions the first time you use certain features:
 | Feature | Permission |
 | --- | --- |
 | Macros | Accessibility (so the app can type for you) |
-| Music | Screen & System Audio Recording (audio only) |
+| Music | System audio recording (no microphone) |
 
 ## How it works
 
@@ -60,7 +60,7 @@ flowchart LR
 - **Electron app** (`src/`): the window (React + Tailwind + shadcn/ui), and the main process that renders lighting effects frame by frame, registers macro shortcuts and stores your preferences.
 - **Swift helper** (`native/f75-helper/`): a small command-line program that does everything that needs native macOS APIs:
   - talks to the keyboard over USB HID (IOKit)
-  - captures system audio and turns it into a 16-band spectrum (ScreenCaptureKit + Accelerate)
+  - captures system audio and turns it into a 16-band spectrum (Core Audio taps on macOS 14.2+, ScreenCaptureKit before that, + Accelerate)
   - types macro text (CGEvent)
   - draws the native menu bar item (AppKit)
 

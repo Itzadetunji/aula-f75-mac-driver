@@ -97,7 +97,7 @@
       "wireless": "Via le dongle 2,4 GHz, les couleurs sont légèrement arrondies pour s'adapter à la liaison radio, et le clavier doit être sur Fixe (les effets animés recouvrent l'éclairage de l'app)."
     },
     "keyColour": "Couleur de la touche",
-    "musicPrivacy": "L'app écoute uniquement la sortie audio de votre Mac (pas de micro, rien n'est enregistré). La première fois, macOS demande l'autorisation Enregistrement de l'écran et de l'audio système.",
+    "musicPrivacy": "L'app écoute uniquement la sortie audio de votre Mac (pas de micro, rien n'est enregistré). La première fois, macOS demande l'autorisation d'enregistrer l'audio système.",
     "fillAll": "Tout remplir",
     "clearAll": "Tout effacer"
   },
@@ -297,7 +297,7 @@
       "closeQuit": "Quitter l'app",
       "closeDescription": "Dans la barre des menus, l'éclairage en direct, Musique et les macros continuent de fonctionner fenêtre fermée.",
       "keepAwake": "Garder l'écran allumé pendant Musique",
-      "keepAwakeDescription": "macOS arrête la capture audio du système quand l'écran se met en veille, ce qui coupe Musique. Désactivez cette option pour laisser l'écran se mettre en veille normalement."
+      "keepAwakeDescription": "Utile uniquement avant macOS 14.2, où la capture audio du système s'arrête quand l'écran se met en veille. Les versions plus récentes gardent Musique actif écran éteint."
     },
     "keyboard": {
       "title": "Clavier",

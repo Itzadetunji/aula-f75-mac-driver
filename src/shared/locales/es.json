@@ -97,7 +97,7 @@
       "wireless": "Con el dongle de 2,4 GHz, los colores se redondean un poco para adaptarse al enlace de radio, y el teclado debe estar en Fijo (los efectos animados se pintan sobre la iluminación de la app)."
     },
     "keyColour": "Color de tecla",
-    "musicPrivacy": "La app solo escucha la salida de sonido de tu Mac (sin micrófono y sin grabar nada). La primera vez, macOS solicita el permiso de Grabación de pantalla y audio del sistema.",
+    "musicPrivacy": "La app solo escucha la salida de sonido de tu Mac (sin micrófono, no se graba nada). La primera vez, macOS pide permiso para grabar el audio del sistema.",
     "fillAll": "Rellenar todo",
     "clearAll": "Borrar todo"
   },
@@ -297,7 +297,7 @@
       "closeQuit": "Salir de la app",
       "closeDescription": "En la barra de menús, la iluminación en vivo, Música y las macros siguen funcionando con la ventana cerrada.",
       "keepAwake": "Mantener la pantalla encendida con Música activa",
-      "keepAwakeDescription": "macOS detiene la captura de audio del sistema cuando la pantalla entra en reposo, lo que apaga Música. Desactívalo para que la pantalla entre en reposo como siempre."
+      "keepAwakeDescription": "Solo es necesario en versiones de macOS anteriores a la 14.2, donde la captura de audio del sistema se detiene cuando la pantalla entra en reposo. Las versiones más recientes mantienen Música activa con la pantalla apagada."
     },
     "keyboard": {
       "title": "Teclado",

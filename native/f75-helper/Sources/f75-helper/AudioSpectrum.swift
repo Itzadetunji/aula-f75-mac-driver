@@ -88,10 +88,11 @@ final class SpectrumAnalyzer {
 }
 
 /// Captures the Mac's system audio output (not the microphone) and reports a spectrum.
-/// Needs the "Screen & System Audio Recording" permission.
 ///
-/// macOS ends the capture whenever the display sleeps or the screen locks, so
-/// while capture is wanted it is restarted on wake and retried every few seconds.
+/// On macOS 14.2+ this uses a Core Audio tap, which keeps working while the
+/// display sleeps. Otherwise it falls back to ScreenCaptureKit, which macOS ends
+/// whenever the display sleeps or the screen locks; while capture is wanted it is
+/// restarted on wake and retried every few seconds.
 final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
     static let bandCount = 16
     private static let sampleRate = 48_000
@@ -99,6 +100,8 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
 
     private let queue = DispatchQueue(label: "f75.audio")
     private var stream: SCStream?
+    /// The running SystemAudioTap (stored untyped because it needs macOS 14.2).
+    private var tap: AnyObject?
     private var starting = false
     private var wanted = false
     private var reportedError = false
@@ -110,14 +113,21 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
 
     var onBands: (([Float]) -> Void)?
     var onError: ((String) -> Void)?
-    /// Capture is running (again); any earlier error no longer applies.
-    var onStarted: (() -> Void)?
+    /// Capture is running (again) through "tap" or "screen"; any earlier error no longer applies.
+    var onStarted: ((String) -> Void)?
 
     override init() {
         super.init()
         let center = NSWorkspace.shared.notificationCenter
-        for name in [NSWorkspace.didWakeNotification, NSWorkspace.screensDidWakeNotification, NSWorkspace.sessionDidBecomeActiveNotification] {
+        for name in [NSWorkspace.screensDidWakeNotification, NSWorkspace.sessionDidBecomeActiveNotification] {
             center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in self?.connect() }
+        }
+        // Rebuilt after system sleep and when the output device changes, since the tap is tied to that device.
+        center.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.restartTap()
+        }
+        if #available(macOS 14.2, *) {
+            SystemAudioTap.observeOutputChanges { [weak self] in self?.restartTap() }
         }
     }
 
@@ -143,9 +153,10 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
     }
 
     private func connect() {
-        guard wanted, stream == nil, !starting else { return }
+        guard wanted, stream == nil, tap == nil, !starting else { return }
         retry?.invalidate()
         retry = nil
+        if #available(macOS 14.2, *), startTap() { return }
         starting = true
         Task {
             do {
@@ -173,7 +184,7 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
                     }
                     self.stream = stream
                     self.reportedError = false
-                    self.onStarted?()
+                    self.onStarted?("screen")
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -182,6 +193,32 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
                 }
             }
         }
+    }
+
+    @available(macOS 14.2, *)
+    private func startTap() -> Bool {
+        let tap = SystemAudioTap()
+        do {
+            let sampleRate = try tap.start(queue: queue) { [weak self] samples in self?.process(samples) }
+            self.tap = tap
+            queue.async { self.analyzer = SpectrumAnalyzer(bandCount: Self.bandCount, sampleRate: sampleRate) }
+            reportedError = false
+            onStarted?("tap")
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    private func stopTap() {
+        if #available(macOS 14.2, *) { (tap as? SystemAudioTap)?.stop() }
+        tap = nil
+    }
+
+    private func restartTap() {
+        guard wanted, tap != nil else { return connect() }
+        stopTap()
+        connect()
     }
 
     /// Only a missing permission is worth showing; a sleeping or locked display just means "try again later".
@@ -206,10 +243,11 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
             ProcessInfo.processInfo.endActivity(activity)
             self.activity = nil
         }
+        stopTap()
+        queue.async { self.analyzer = SpectrumAnalyzer(bandCount: Self.bandCount, sampleRate: Double(Self.sampleRate)) }
         guard let stream else { return }
         self.stream = nil
         Task { try? await stream.stopCapture() }
-        queue.async { self.analyzer = SpectrumAnalyzer(bandCount: Self.bandCount, sampleRate: Double(Self.sampleRate)) }
     }
 
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
@@ -220,6 +258,11 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
             let count = Int(first.mDataByteSize) / MemoryLayout<Float>.size
             samples = Array(UnsafeBufferPointer(start: data.bindMemory(to: Float.self, capacity: count), count: count))
         }
+        process(samples)
+    }
+
+    /// Runs on `queue`.
+    private func process(_ samples: [Float]) {
         guard let bands = analyzer.push(samples) else { return }
         DispatchQueue.main.async {
             self.lastBands = Date()

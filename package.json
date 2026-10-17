@@ -1,6 +1,6 @@
 {
   "name": "f75-studio",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "macOS configurator for the AULA F75 keyboard",
   "private": true,
   "main": "out/main/index.js",
@@ -30,6 +30,9 @@
     "mac": {
       "target": "dir",
       "icon": "build/icon.icns",
+      "extendInfo": {
+        "NSAudioCaptureUsageDescription": "AULA F75 Mac Driver listens to your Mac's sound output so the Music effect can light the keyboard. Nothing is recorded."
+      },
       "category": "public.app-category.utilities"
     }
   },
