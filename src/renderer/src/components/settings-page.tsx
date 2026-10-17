@@ -106,6 +106,17 @@ function AppCard() {
         </div>
 
         <div className="flex flex-col gap-2">
+          <Label className="justify-between">
+            {t('settings.app.keepAwake')}
+            <Switch
+              checked={preferences.keepAwakeForMusic}
+              onCheckedChange={(keepAwakeForMusic) => updatePreferences({ keepAwakeForMusic })}
+            />
+          </Label>
+          <p className="text-muted-foreground text-xs">{t('settings.app.keepAwakeDescription')}</p>
+        </div>
+
+        <div className="flex flex-col gap-2">
           <Label>{t('settings.app.close')}</Label>
           <Select
             value={preferences.closeAction}

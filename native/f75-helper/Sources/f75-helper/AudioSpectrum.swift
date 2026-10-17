@@ -1,4 +1,5 @@
 import Accelerate
+import AppKit
 import CoreMedia
 import Foundation
 import ScreenCaptureKit
@@ -88,19 +89,37 @@ final class SpectrumAnalyzer {
 
 /// Captures the Mac's system audio output (not the microphone) and reports a spectrum.
 /// Needs the "Screen & System Audio Recording" permission.
+///
+/// macOS ends the capture whenever the display sleeps or the screen locks, so
+/// while capture is wanted it is restarted on wake and retried every few seconds.
 final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
     static let bandCount = 16
     private static let sampleRate = 48_000
+    private static let retryInterval: TimeInterval = 3
 
     private let queue = DispatchQueue(label: "f75.audio")
     private var stream: SCStream?
     private var starting = false
+    private var wanted = false
+    private var reportedError = false
+    private var retry: Timer?
+    private var activity: NSObjectProtocol?
     private var analyzer = SpectrumAnalyzer(bandCount: bandCount, sampleRate: Double(sampleRate))
     private var lastBands = Date.distantPast
     private var watchdog: Timer?
 
     var onBands: (([Float]) -> Void)?
     var onError: ((String) -> Void)?
+    /// Capture is running (again); any earlier error no longer applies.
+    var onStarted: (() -> Void)?
+
+    override init() {
+        super.init()
+        let center = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.didWakeNotification, NSWorkspace.screensDidWakeNotification, NSWorkspace.sessionDidBecomeActiveNotification] {
+            center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in self?.connect() }
+        }
+    }
 
     /// macOS stops delivering audio buffers when nothing is playing, which would
     /// freeze the last spectrum on the keyboard; report silence instead.
@@ -114,7 +133,19 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
 
     /// Call on the main thread.
     func start() {
-        guard stream == nil, !starting else { return }
+        guard !wanted else { return }
+        wanted = true
+        reportedError = false
+        // Keeps App Nap from throttling the helper and the Mac from idle-sleeping mid-song.
+        activity = ProcessInfo.processInfo.beginActivity(options: [.userInitiated, .latencyCritical], reason: "Streaming music to the keyboard")
+        startWatchdog()
+        connect()
+    }
+
+    private func connect() {
+        guard wanted, stream == nil, !starting else { return }
+        retry?.invalidate()
+        retry = nil
         starting = true
         Task {
             do {
@@ -136,22 +167,45 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
                 try await stream.startCapture()
                 DispatchQueue.main.async {
                     self.starting = false
+                    guard self.wanted else {
+                        Task { try? await stream.stopCapture() }
+                        return
+                    }
                     self.stream = stream
-                    self.startWatchdog()
+                    self.reportedError = false
+                    self.onStarted?()
                 }
             } catch {
                 DispatchQueue.main.async {
                     self.starting = false
-                    self.onError?("Can't hear your Mac's audio: \(error.localizedDescription). Allow Screen & System Audio Recording in System Settings › Privacy & Security, then restart the app.")
+                    self.failed(error)
                 }
             }
         }
     }
 
+    /// Only a missing permission is worth showing; a sleeping or locked display just means "try again later".
+    private func failed(_ error: Error) {
+        guard wanted else { return }
+        if (error as? SCStreamError)?.code == .userDeclined, !reportedError {
+            reportedError = true
+            onError?("Can't hear your Mac's audio: \(error.localizedDescription). Allow Screen & System Audio Recording in System Settings › Privacy & Security, then restart the app.")
+        }
+        retry?.invalidate()
+        retry = Timer.scheduledTimer(withTimeInterval: Self.retryInterval, repeats: false) { [weak self] _ in self?.connect() }
+    }
+
     /// Call on the main thread.
     func stop() {
+        wanted = false
+        retry?.invalidate()
+        retry = nil
         watchdog?.invalidate()
         watchdog = nil
+        if let activity {
+            ProcessInfo.processInfo.endActivity(activity)
+            self.activity = nil
+        }
         guard let stream else { return }
         self.stream = nil
         Task { try? await stream.stopCapture() }
@@ -175,12 +229,9 @@ final class AudioSpectrum: NSObject, SCStreamOutput, SCStreamDelegate {
 
     func stream(_ stream: SCStream, didStopWithError error: Error) {
         DispatchQueue.main.async {
-            if self.stream === stream {
-                self.stream = nil
-                self.watchdog?.invalidate()
-                self.watchdog = nil
-            }
-            self.onError?("Audio capture stopped: \(error.localizedDescription)")
+            guard self.stream === stream else { return }
+            self.stream = nil
+            self.failed(error)
         }
     }
 }

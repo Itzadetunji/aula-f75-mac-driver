@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, shell, systemPreferences } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, powerSaveBlocker, shell, systemPreferences } from 'electron'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { HelperClient } from './helper'
@@ -50,6 +50,7 @@ function loadPreferences(): Preferences {
   if (!isLanguage(prefs.language)) prefs.language = DEFAULT_PREFERENCES.language
   if (prefs.closeAction !== 'quit') prefs.closeAction = 'menubar'
   if (typeof prefs.running !== 'boolean') prefs.running = true
+  if (typeof prefs.keepAwakeForMusic !== 'boolean') prefs.keepAwakeForMusic = true
   return prefs
 }
 
@@ -65,6 +66,9 @@ const startedAt = Date.now()
 let audioBands: number[] = []
 const musicMeter = new MusicMeter()
 let audioRunning = false
+/** The status error currently shown is the helper's audio error. */
+let audioErrorShown = false
+let musicBlocker: number | null = null
 
 let status: DeviceStatus = {
   helperRunning: false,
@@ -113,13 +117,30 @@ function stopAnimation() {
   animationTimer = null
 }
 
+function clearAudioError() {
+  if (!audioErrorShown) return
+  audioErrorShown = false
+  publishStatus({ error: null })
+}
+
+/**
+ * macOS ends system audio capture when the display sleeps, so Music goes dark
+ * unless the display is kept awake. Otherwise only App Nap and idle system sleep are held off.
+ */
+function syncMusicBlocker() {
+  const type = !audioRunning ? null : preferences.keepAwakeForMusic ? 'prevent-display-sleep' : 'prevent-app-suspension'
+  if (musicBlocker !== null) powerSaveBlocker.stop(musicBlocker)
+  musicBlocker = type ? powerSaveBlocker.start(type) : null
+}
+
 function syncAudio() {
   const wanted = lighting.effect === 'music' && identifyingLed === null && preferences.running
   if (wanted === audioRunning) return
   audioRunning = wanted
+  syncMusicBlocker()
   if (!wanted) {
     audioBands = []
-    if (status.error?.includes('audio')) publishStatus({ error: null })
+    clearAudioError()
   }
   void helper.call(wanted ? 'startAudio' : 'stopAudio').catch(() => {})
 }
@@ -173,10 +194,12 @@ helper.on('audio', (msg: { bands: number[] }) => {
   audioBands = msg.bands
   window?.webContents.send('f75:audio', audioBands)
 })
+// The helper keeps retrying by itself; these only update what the window shows.
 helper.on('audioError', (msg: { message: string }) => {
-  audioRunning = false
+  audioErrorShown = true
   publishStatus({ error: msg.message })
 })
+helper.on('audioStarted', clearAudioError)
 helper.on('menu', ({ id }: { id: string }) => {
   if (id === 'toggleRunning') setRunning(!preferences.running)
   else if (id === 'open') showWindow()
@@ -191,6 +214,7 @@ helper.on('menu', ({ id }: { id: string }) => {
 helper.on('exit', () => {
   stopAnimation()
   audioRunning = false
+  syncMusicBlocker()
   publishStatus({ helperRunning: false, connected: false })
   setTimeout(startHelper, 2000)
 })
@@ -305,6 +329,7 @@ ipcMain.handle('f75:setPreferences', (_e, patch: Partial<Preferences>) => {
   if (patch.running !== undefined) applyLighting()
   if (patch.macros || patch.running !== undefined) registerMacros()
   if (patch.language || patch.running !== undefined) updateMenu()
+  if (patch.keepAwakeForMusic !== undefined) syncMusicBlocker()
   return preferences
 })
 ipcMain.handle('f75:getAppVersion', () => app.getVersion())

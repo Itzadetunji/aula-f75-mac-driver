@@ -295,7 +295,9 @@
       "close": "À la fermeture de la fenêtre",
       "closeMenubar": "Continuer dans la barre des menus",
       "closeQuit": "Quitter l'app",
-      "closeDescription": "Dans la barre des menus, l'éclairage en direct, Musique et les macros continuent de fonctionner fenêtre fermée."
+      "closeDescription": "Dans la barre des menus, l'éclairage en direct, Musique et les macros continuent de fonctionner fenêtre fermée.",
+      "keepAwake": "Garder l'écran allumé pendant Musique",
+      "keepAwakeDescription": "macOS arrête la capture audio du système quand l'écran se met en veille, ce qui coupe Musique. Désactivez cette option pour laisser l'écran se mettre en veille normalement."
     },
     "keyboard": {
       "title": "Clavier",

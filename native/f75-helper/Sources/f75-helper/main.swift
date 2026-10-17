@@ -25,6 +25,8 @@ final class Server {
     private var directColors: [[UInt8]]?
     private var lastFrameSent = Date.distantPast
     private var keepalive: Timer?
+    /// Held while streaming lighting, so App Nap doesn't stretch the keepalive timer.
+    private var streaming: NSObjectProtocol?
     /// Over the radio the keyboard falls back to its own effect quickly when
     /// frames stop, so even an unchanged frame is repeated this often (seconds).
     private static let dongleRefresh: TimeInterval = 0.25
@@ -41,6 +43,9 @@ final class Server {
         }
         audio.onError = { message in
             emit(["event": "audioError", "message": message])
+        }
+        audio.onStarted = {
+            emit(["event": "audioStarted"])
         }
         menu.onSelect = { id in
             emit(["event": "menu", "id": id])
@@ -183,6 +188,8 @@ final class Server {
 
     private func startKeepalive() {
         guard keepalive == nil else { return }
+        streaming = ProcessInfo.processInfo.beginActivity(
+            options: [.userInitiatedAllowingIdleSystemSleep, .latencyCritical], reason: "Streaming lighting to the keyboard")
         keepalive = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self, let colors = self.directColors else { return }
             let stale = self.keyboard.transport == .wireless
@@ -196,6 +203,10 @@ final class Server {
     private func stopDirect() {
         keepalive?.invalidate()
         keepalive = nil
+        if let streaming {
+            ProcessInfo.processInfo.endActivity(streaming)
+            self.streaming = nil
+        }
         directColors = nil
         lastDongleReports = []
     }

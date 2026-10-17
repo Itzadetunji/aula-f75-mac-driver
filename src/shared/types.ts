@@ -16,6 +16,8 @@ export interface Preferences {
   closeAction: CloseAction
   /** false = paused: the app's lighting and macros are off and the keyboard shows its own effect. */
   running: boolean
+  /** Keep the display awake while Music streams, since capture stops when it sleeps. */
+  keepAwakeForMusic: boolean
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
@@ -25,6 +27,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   language: 'en',
   closeAction: 'menubar',
   running: true,
+  keepAwakeForMusic: true,
 }
 
 /** Macro id -> translation key of the reason it couldn't be registered. */

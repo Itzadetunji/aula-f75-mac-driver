@@ -295,7 +295,9 @@
       "close": "关闭窗口时",
       "closeMenubar": "在菜单栏中保持运行",
       "closeQuit": "退出应用",
-      "closeDescription": "在菜单栏中，关闭窗口后实时灯光、音乐和宏仍会继续工作。"
+      "closeDescription": "在菜单栏中，关闭窗口后实时灯光、音乐和宏仍会继续工作。",
+      "keepAwake": "音乐开启时保持显示器唤醒",
+      "keepAwakeDescription": "显示器进入睡眠时，macOS 会停止捕获系统音频，音乐效果随之停止。关闭此项可让显示器照常进入睡眠。"
     },
     "keyboard": {
       "title": "键盘",

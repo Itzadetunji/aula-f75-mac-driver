@@ -295,7 +295,9 @@
       "close": "When you close the window",
       "closeMenubar": "Keep running in the menu bar",
       "closeQuit": "Quit the app",
-      "closeDescription": "In the menu bar, live lighting, Music and macros keep working with the window closed."
+      "closeDescription": "In the menu bar, live lighting, Music and macros keep working with the window closed.",
+      "keepAwake": "Keep the display awake while Music is on",
+      "keepAwakeDescription": "macOS stops system audio capture when the display sleeps, which turns Music off. Turn this off to let the display sleep as usual."
     },
     "keyboard": {
       "title": "Keyboard",
