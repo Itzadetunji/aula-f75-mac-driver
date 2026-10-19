@@ -5,8 +5,9 @@
 <h1 align="center">AULA F75 Mac Driver</h1>
 
 <p align="center">
-  Customise the AULA F75 keyboard on macOS: lighting, music visualiser, macros and keyboard settings,<br />
-  without needing the Windows-only vendor app.
+  <b>AULA F75 driver and software for macOS.</b>
+  <br>
+  The official AULA F75 software is currently Windows-only. This free, open-source macOS app lets you configure and customize your AULA F75 keyboard on Mac without needing Windows.
 </p>
 
 Youtube Video - [https://youtu.be/Qc0JmPmlfGw](https://youtu.be/Qc0JmPmlfGw)
