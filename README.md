@@ -9,7 +9,7 @@
   without needing the Windows-only vendor app.
 </p>
 
-Youtube Video - [Here](https://youtu.be/Qc0JmPmlfGw)
+Youtube Video - [https://youtu.be/Qc0JmPmlfGw](https://youtu.be/Qc0JmPmlfGw)
 
 ---
 
