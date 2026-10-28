@@ -78,11 +78,11 @@
       "turnOff": "Apagar"
     },
     "help": {
-      "click": "Haz clic en una tecla para seleccionarla y vuelve a hacer clic para deseleccionarla",
-      "multi": "Mantén pulsado <kbd>⇧ Shift</kbd> o <kbd>⌘ Comando</kbd> y haz clic para seleccionar varias teclas",
-      "drag": "Arrastra sobre las teclas para seleccionar un grupo",
+      "click": "Haz clic en una tecla para pintarla con el color actual; vuelve a hacer clic para apagarla",
+      "multi": "Mantén pulsado <kbd>⇧ Shift</kbd> o <kbd>⌘ Comando</kbd> y haz clic para seleccionar varias teclas sin pintar",
+      "drag": "Arrastra sobre las teclas para pintar un grupo",
       "all": "<kbd>⌘ A</kbd> selecciona todo · <kbd>Esc</kbd> o un clic en el borde del teclado deselecciona todo",
-      "thenPick": "Luego elige un color a la derecha para iluminar las teclas seleccionadas"
+      "thenPick": "Elige un color a la derecha para recolorear las teclas seleccionadas, o usa Rellenar todo"
     },
     "preview": {
       "music": "Reproduce algo en tu Mac y las barras seguirán la música.",
@@ -93,7 +93,7 @@
     },
     "effectCard": {
       "title": "Efecto",
-      "description": "Los efectos distintos de Integrado los controla esta app y siguen activos mientras se ejecuta (incluso con la ventana cerrada).",
+      "description": "Los efectos distintos de Integrado los controla esta app y siguen activos mientras se ejecuta (incluso con la ventana cerrada). Para Fn+B (batería) con iluminación en vivo, usa Permitir atajos Fn en la barra de menú.",
       "wireless": "Con el dongle de 2,4 GHz, los colores se redondean un poco para adaptarse al enlace de radio, y el teclado debe estar en Fijo (los efectos animados se pintan sobre la iluminación de la app)."
     },
     "keyColour": "Color de tecla",
@@ -331,6 +331,7 @@
     "disconnected": "AULA F75 · No conectado",
     "pause": "Pausar iluminación y macros",
     "resume": "Reanudar iluminación y macros",
+    "yieldFn": "Permitir atajos Fn (3 s)",
     "lighting": "Iluminación",
     "open": "Abrir AULA F75 Mac Driver",
     "quit": "Salir"

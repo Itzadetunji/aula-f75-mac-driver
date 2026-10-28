@@ -78,11 +78,11 @@
       "turnOff": "Éteindre"
     },
     "help": {
-      "click": "Cliquez sur une touche pour la sélectionner, cliquez à nouveau pour la désélectionner",
-      "multi": "Maintenez <kbd>⇧ Maj</kbd> ou <kbd>⌘ Commande</kbd> et cliquez pour sélectionner plusieurs touches",
-      "drag": "Faites glisser sur les touches pour sélectionner un groupe",
+      "click": "Cliquez sur une touche pour la peindre avec la couleur actuelle ; recliquez pour l'éteindre",
+      "multi": "Maintenez <kbd>⇧ Maj</kbd> ou <kbd>⌘ Commande</kbd> et cliquez pour sélectionner plusieurs touches sans peindre",
+      "drag": "Faites glisser sur les touches pour peindre un groupe",
       "all": "<kbd>⌘ A</kbd> sélectionne tout · <kbd>Échap</kbd> ou un clic sur le bord du clavier désélectionne tout",
-      "thenPick": "Choisissez ensuite une couleur à droite pour allumer les touches sélectionnées"
+      "thenPick": "Choisissez une couleur à droite pour recolorer les touches sélectionnées, ou utilisez Tout remplir"
     },
     "preview": {
       "music": "Lancez de la musique sur votre Mac et les barres suivent le rythme.",
@@ -93,7 +93,7 @@
     },
     "effectCard": {
       "title": "Effet",
-      "description": "Les effets autres qu'Intégré sont pilotés par cette app et restent actifs tant qu'elle tourne (même fenêtre fermée).",
+      "description": "Les effets autres qu'Intégré sont pilotés par cette app et restent actifs tant qu'elle tourne (même fenêtre fermée). Pour Fn+B (batterie) pendant l'éclairage en direct, utilisez Autoriser les raccourcis Fn dans la barre de menu.",
       "wireless": "Via le dongle 2,4 GHz, les couleurs sont légèrement arrondies pour s'adapter à la liaison radio, et le clavier doit être sur Fixe (les effets animés recouvrent l'éclairage de l'app)."
     },
     "keyColour": "Couleur de la touche",
@@ -331,6 +331,7 @@
     "disconnected": "AULA F75 · Non connecté",
     "pause": "Mettre en pause l'éclairage et les macros",
     "resume": "Reprendre l'éclairage et les macros",
+    "yieldFn": "Autoriser les raccourcis Fn (3 s)",
     "lighting": "Éclairage",
     "open": "Ouvrir AULA F75 Mac Driver",
     "quit": "Quitter"

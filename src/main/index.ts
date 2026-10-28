@@ -62,6 +62,8 @@ let lighting = loadLighting()
 let identifyingLed: number | null = null
 let animationTimer: NodeJS.Timeout | null = null
 let frameInFlight = false
+/** Latest frame waiting while a HID write is in progress; never drop per-key updates. */
+let pendingFrame: RGB[] | null = null
 const startedAt = Date.now()
 let audioBands: number[] = []
 const musicMeter = new MusicMeter()
@@ -103,11 +105,20 @@ async function refreshDevice() {
 }
 
 async function sendFrame(frame: RGB[]) {
-  if (frameInFlight || !status.connected || !preferences.running) return
+  if (!status.connected || !preferences.running) return
+  // Always keep the newest frame. Dropping updates made single-key custom
+  // colours miss the keyboard whenever a prior HID write was still in flight.
+  pendingFrame = frame
+  if (frameInFlight) return
   frameInFlight = true
   try {
-    await helper.call('setDirect', { colors: frame })
+    while (pendingFrame) {
+      const toSend = pendingFrame
+      pendingFrame = null
+      await helper.call('setDirect', { colors: toSend })
+    }
   } catch (err) {
+    pendingFrame = null
     publishStatus({ error: (err as Error).message })
   } finally {
     frameInFlight = false
@@ -154,6 +165,7 @@ function applyLighting() {
   if (!status.connected) return
 
   if (!preferences.running) {
+    pendingFrame = null
     void helper.call('stopDirect').catch(() => {})
     return
   }
@@ -166,6 +178,7 @@ function applyLighting() {
   }
 
   if (lighting.effect === 'hardware') {
+    pendingFrame = null
     void helper.call('stopDirect').catch(() => {})
     return
   }
@@ -208,8 +221,23 @@ helper.on('audioStarted', (msg: { source: 'tap' | 'screen' }) => {
   audioSource = msg.source
   syncMusicBlocker()
 })
+let yieldTimer: NodeJS.Timeout | null = null
+
+/** Stop painting LEDs briefly so on-keyboard Fn feedback (e.g. Fn+B battery) can show. */
+function yieldToKeyboard(seconds = 3.5) {
+  if (yieldTimer) clearTimeout(yieldTimer)
+  void helper.call('yieldToKeyboard', { seconds }).catch(() => {})
+  // Keep the animation loop from immediately fighting the yield.
+  stopAnimation()
+  yieldTimer = setTimeout(() => {
+    yieldTimer = null
+    applyLighting()
+  }, Math.round(seconds * 1000))
+}
+
 helper.on('menu', ({ id }: { id: string }) => {
   if (id === 'toggleRunning') setRunning(!preferences.running)
+  else if (id === 'yieldFn') yieldToKeyboard()
   else if (id === 'open') showWindow()
   else if (id === 'quit') app.quit()
   else if (id.startsWith('effect:')) {
@@ -275,6 +303,15 @@ function updateMenu() {
       title: t(preferences.running ? 'menu.pause' : 'menu.resume'),
       symbol: preferences.running ? 'pause.fill' : 'play.fill',
     },
+    ...(preferences.running && lighting.effect !== 'hardware' && lighting.effect !== 'off'
+      ? [
+          {
+            id: 'yieldFn',
+            title: t('menu.yieldFn'),
+            symbol: 'fn',
+          },
+        ]
+      : []),
     { type: 'separator' },
     { type: 'header', title: t('menu.lighting') },
     ...MENU_EFFECTS.map(({ id, symbol }) => ({

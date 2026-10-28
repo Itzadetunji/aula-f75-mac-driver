@@ -111,11 +111,17 @@ function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wirel
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const dragMode = useRef<'add' | 'remove'>('add')
 
+  const paintLeds = (leds: Iterable<number>, color: RGB) => {
+    update((prev) => {
+      const perKey = { ...prev.perKey }
+      for (const led of leds) perKey[led] = color
+      return { perKey }
+    })
+  }
+
   const colorSelected = (color: RGB) => {
     if (selected.size === 0) return
-    const perKey = { ...lighting.perKey }
-    for (const led of selected) perKey[led] = color
-    update({ perKey })
+    paintLeds(selected, color)
   }
 
   const activeColor = isCustom ? brush : lighting.color
@@ -131,31 +137,43 @@ function LiveLighting({ connected, wireless, tabs }: { connected: boolean; wirel
       next.delete(led)
       return next
     })
-    update((prev) => {
-      const { [led]: _, ...perKey } = prev.perKey
-      return { perKey }
-    })
   }
 
   const onKeyDown = (key: KeyDef, e: MouseEvent) => {
-    if (selected.has(key.led)) {
+    if (e.metaKey || e.shiftKey) {
+      // Multi-select without painting; colour is applied from the swatches.
+      if (selected.has(key.led)) {
+        dragMode.current = 'remove'
+        deselect(key.led)
+      } else {
+        dragMode.current = 'add'
+        setSelected((prev) => new Set(prev).add(key.led))
+      }
+      return
+    }
+    if (selected.has(key.led) && selected.size === 1) {
+      // Second click on the only selected key clears its colour.
       dragMode.current = 'remove'
       deselect(key.led)
-    } else if (e.metaKey || e.shiftKey) {
-      dragMode.current = 'add'
-      setSelected((prev) => new Set(prev).add(key.led))
-    } else {
-      dragMode.current = 'add'
-      setSelected(new Set([key.led]))
+      update((prev) => {
+        const { [key.led]: _, ...perKey } = prev.perKey
+        return { perKey }
+      })
+      return
     }
+    // Click paints with the current brush and selects that key.
+    dragMode.current = 'add'
+    setSelected(new Set([key.led]))
+    paintLeds([key.led], brush)
   }
 
   const onKeyEnter = (key: KeyDef) => {
     if (dragMode.current === 'remove') {
       if (selected.has(key.led)) deselect(key.led)
-    } else {
-      setSelected((prev) => new Set(prev).add(key.led))
+      return
     }
+    setSelected((prev) => new Set(prev).add(key.led))
+    paintLeds([key.led], brush)
   }
 
   useEffect(() => {

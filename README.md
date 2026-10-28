@@ -77,7 +77,7 @@ Writing bad data to a keyboard's settings can brick it, so the helper is deliber
 
 - Only bytes whose meaning is confirmed can be written; everything else is refused.
 - Settings are **never** written over the dongle: radio writes are known to have bricked another F75.
-- Live lighting is capped at about 20 frames per second. Faster rates starve the keyboard's key scanning and cause missed keypresses.
+- Live lighting is capped at about 20 frames per second. Faster rates starve the keyboard's key scanning and cause missed keypresses. For Fn+B (battery) during live lighting, use **Allow Fn shortcuts (3s)** in the menu bar.
 
 ## Development
 

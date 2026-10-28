@@ -78,11 +78,11 @@
       "turnOff": "Turn off"
     },
     "help": {
-      "click": "Click a key to select it, click it again to deselect",
-      "multi": "Hold <kbd>⇧ Shift</kbd> or <kbd>⌘ Command</kbd> and click to select multiple keys",
-      "drag": "Drag across keys to select a group",
+      "click": "Click a key to paint it with the current colour; click it again to turn it off",
+      "multi": "Hold <kbd>⇧ Shift</kbd> or <kbd>⌘ Command</kbd> and click to select multiple keys without painting",
+      "drag": "Drag across keys to paint a group",
       "all": "<kbd>⌘ A</kbd> selects all · <kbd>Esc</kbd> or click the board's edge to deselect all",
-      "thenPick": "Then pick a colour on the right to light the selected keys"
+      "thenPick": "Pick a colour on the right to recolour the selected keys, or use Fill all"
     },
     "preview": {
       "music": "Play something on your Mac and the bars follow the music.",
@@ -93,7 +93,7 @@
     },
     "effectCard": {
       "title": "Effect",
-      "description": "Effects other than On-board are driven by this app and stay active while it is running (even with the window closed).",
+      "description": "Effects other than On-board are driven by this app and stay active while it is running (even with the window closed). For Fn+B (battery) while live lighting is on, use Allow Fn shortcuts in the menu bar.",
       "wireless": "Over the 2.4 GHz dongle, colours are rounded a little to fit the radio link, and the keyboard must be on Fixed on (animated effects paint over the app's lighting)."
     },
     "keyColour": "Key colour",
@@ -331,6 +331,7 @@
     "disconnected": "AULA F75 · Not connected",
     "pause": "Pause lighting and macros",
     "resume": "Resume lighting and macros",
+    "yieldFn": "Allow Fn shortcuts (3s)",
     "lighting": "Lighting",
     "open": "Open AULA F75 Mac Driver",
     "quit": "Quit"

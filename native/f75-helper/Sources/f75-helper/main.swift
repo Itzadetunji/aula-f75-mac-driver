@@ -30,6 +30,8 @@ final class Server {
     /// Over the radio the keyboard falls back to its own effect quickly when
     /// frames stop, so even an unchanged frame is repeated this often (seconds).
     private static let dongleRefresh: TimeInterval = 0.25
+    /// Explicit Fn yield only (menu item). Does not affect normal live-lighting speed.
+    private var yieldUntil = Date.distantPast
     private var lastDongleReports: [[UInt8]] = []
     private var lastDongleSent = Date.distantPast
 
@@ -74,14 +76,23 @@ final class Server {
         case "setDirect":
             guard let colors = params["colors"] as? [[Int]] else { throw RPCError("colors must be [[r,g,b]]") }
             let rgb = colors.map { $0.map { UInt8(clamping: $0) } }
-            try sendColors(rgb)
             directColors = rgb
-            lastFrameSent = Date()
             startKeepalive()
+            // Menu "Allow Fn shortcuts" only — keep the buffer updated but stay off the wire.
+            if Date() < yieldUntil { return true }
+            try sendColors(rgb)
+            lastFrameSent = Date()
             return true
 
         case "stopDirect":
             stopDirect()
+            return true
+
+        case "yieldToKeyboard":
+            // Fn combos never reach macOS, so the only way to let Fn+B (battery)
+            // etc. show is to stop painting LEDs for a moment (explicit menu action).
+            let seconds = (params["seconds"] as? Double) ?? 3.5
+            yieldUntil = Date().addingTimeInterval(max(1, seconds))
             return true
 
         case "readConfig":
@@ -192,6 +203,7 @@ final class Server {
             options: [.userInitiatedAllowingIdleSystemSleep, .latencyCritical], reason: "Streaming lighting to the keyboard")
         keepalive = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self, let colors = self.directColors else { return }
+            if Date() < self.yieldUntil { return }
             let stale = self.keyboard.transport == .wireless
                 ? Date().timeIntervalSince(self.lastDongleSent) > Self.dongleRefresh
                 : Date().timeIntervalSince(self.lastFrameSent) > 0.9
@@ -203,6 +215,7 @@ final class Server {
     private func stopDirect() {
         keepalive?.invalidate()
         keepalive = nil
+        yieldUntil = .distantPast
         if let streaming {
             ProcessInfo.processInfo.endActivity(streaming)
             self.streaming = nil
